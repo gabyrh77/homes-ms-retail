@@ -75,7 +75,7 @@ public class StoreController {
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
     public ResourceCreated<Long> createStore(@RequestBody Store store){
-        Store newStore = storeService.upsertStore(store);
+        Store newStore = storeService.insertStore(store);
         return new ResourceCreated<Long>(newStore.getStoreId());
     }
 
@@ -88,14 +88,14 @@ public class StoreController {
         @ApiResponse(code = 500, message = "Internal server error")}
     )
     @RequestMapping(value = {"/{storeId:\\d+}"}, method = RequestMethod.PUT)
+    @ResponseStatus(HttpStatus.OK)
     public Store updateStore(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
                              @ApiParam(name = "store", value = "Store data") @RequestBody Store store) {
 
         if(!storeService.exists(storeId)) {
             throw new NoSuchElementException();
         }
-        store.setStoreId(storeId);
-        return storeService.upsertStore(store);
+        return storeService.updateStore(storeId, store);
     }
 
     @ApiOperation(value = "Deletes a store given an id")

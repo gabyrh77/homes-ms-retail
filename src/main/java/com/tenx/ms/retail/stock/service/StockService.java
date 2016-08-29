@@ -25,8 +25,13 @@ public class StockService {
 
     public void upsertStock(Long productId, Stock stock) {
         ProductEntity product = productRepository.findOne(productId);
-        StockEntity entity = stockConverter.apiModelToRepository(product, stock);
-        stockRepository.save(entity);
+        StockEntity stockEntity = stockRepository.findByProduct(product);
+        if (stockEntity != null) {
+            stockEntity.setExistence(stock.getCount());
+        } else {
+            stockEntity = stockConverter.apiModelToRepository(product, stock);
+        }
+        stockRepository.save(stockEntity);
     }
 
     public Stock findStockByProduct(Long productId) {

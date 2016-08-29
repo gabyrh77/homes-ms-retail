@@ -6,6 +6,7 @@ import com.tenx.ms.commons.rest.RestConstants;
 import com.tenx.ms.commons.rest.dto.ResourceCreated;
 import com.tenx.ms.commons.tests.AbstractIntegrationTest;
 import com.tenx.ms.retail.RetailServiceApp;
+import com.tenx.ms.retail.store.rest.dto.Store;
 import org.apache.commons.io.FileUtils;
 import org.flywaydb.test.annotation.FlywayTest;
 import org.flywaydb.test.junit.FlywayTestExecutionListener;
@@ -54,6 +55,9 @@ public class TestStoreController extends AbstractIntegrationTest {
     @Value("classpath:assets/new_store.json")
     private File newStoreRequest;
 
+    @Value("classpath:assets/update_store.json")
+    private File updateStoreRequest;
+
     @Value("classpath:assets/new_store_empty_name.json")
     private File newStoreEmptyNameRequest;
 
@@ -64,6 +68,12 @@ public class TestStoreController extends AbstractIntegrationTest {
     @Test
     public void getStoreByIdNotFound() {
         ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + "9999", null, HttpMethod.GET);
+        assertEquals("Get a store not found", HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void getStoreByIdStringNotFound() {
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + "1str", null, HttpMethod.GET);
         assertEquals("Get a store not found", HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
@@ -111,5 +121,31 @@ public class TestStoreController extends AbstractIntegrationTest {
         assertEquals("Store created status", HttpStatus.CREATED, response.getStatusCode());
         ResourceCreated responseId = mapper.readValue(response.getBody(), ResourceCreated.class);
         assertTrue("Store created response", (int)responseId.getId() > 0);
+    }
+
+    @Test
+    @FlywayTest
+    public void updateStoreOK() throws IOException {
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
+        assertEquals("Store created status", HttpStatus.CREATED, response.getStatusCode());
+        ResourceCreated responseId = mapper.readValue(response.getBody(), ResourceCreated.class);
+        assertTrue("Store created response", (int)responseId.getId() > 0);
+
+        ResponseEntity<String> responseUpdate = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseId.getId(), FileUtils.readFileToString(updateStoreRequest), HttpMethod.PUT);
+        assertEquals("Store updated status", HttpStatus.OK, responseUpdate.getStatusCode());
+        Store responseBodyUpdate = mapper.readValue(responseUpdate.getBody(), Store.class);
+        assertEquals("Store updated id", (int)responseId.getId(), responseBodyUpdate.getStoreId().intValue());
+        assertEquals("Store updated name", responseBodyUpdate.getName(), "Adidas C.A.");
+    }
+
+    @Test
+    @FlywayTest
+    public void deleteStoreOK() throws IOException {
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
+        assertEquals("Store created status", HttpStatus.CREATED, response.getStatusCode());
+        ResourceCreated responseId = mapper.readValue(response.getBody(), ResourceCreated.class);
+
+        ResponseEntity<String> responseDelete = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseId.getId(), null, HttpMethod.DELETE);
+        assertEquals("Delete store not found", HttpStatus.NO_CONTENT, responseDelete.getStatusCode());
     }
 }

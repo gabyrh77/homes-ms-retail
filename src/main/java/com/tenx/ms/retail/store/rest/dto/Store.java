@@ -37,10 +37,6 @@ public class Store {
         return this.name;
     }
 
-    public void setStoreId(Long storeId) {
-        this.storeId = storeId;
-    }
-
     public void setName(String name) {
         this.name = name;
     }

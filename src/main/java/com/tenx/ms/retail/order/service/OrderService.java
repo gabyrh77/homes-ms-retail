@@ -44,7 +44,7 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
 
-
+    @SuppressWarnings("PMD")
     public Order createOrder(Long storeId, Order order) {
         StoreEntity store = storeRepository.findOne(storeId);
         if (store == null) {
@@ -69,15 +69,16 @@ public class OrderService {
         OrderEntity newOrder = new OrderEntity(store, client);
         newOrder = orderRepository.save(newOrder);
         Order result = orderConverter.repositoryToApiModel(newOrder);
-        ProductEntity product = null;
-        StockEntity stockProduct = null;
-
+        ProductEntity product;
         for(OrderDetail detail: details) {
-            product = productRepository.findOne(detail.getProductId());
+            product = null;
+            if (detail != null && detail.getProductId() != null && detail.getCount() != null) {
+                product = productRepository.findOne(detail.getProductId());
+            }
             if (product == null || !product.getStore().getId().equals(storeId)) {
                 result.getErrors().add(detail);
             } else {
-                stockProduct = stockRepository.findByProduct(product);
+                StockEntity stockProduct = stockRepository.findByProduct(product);
                 if (stockProduct != null && stockProduct.getExistence() >= detail.getCount()) {
                     createOrderDetail(result, detail, newOrder, product, OrderDetailStatusEnum.ORDERED);
                     decreaseStock(stockProduct, detail.getCount());

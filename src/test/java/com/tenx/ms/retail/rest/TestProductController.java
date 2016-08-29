@@ -6,6 +6,7 @@ import com.tenx.ms.commons.rest.RestConstants;
 import com.tenx.ms.commons.rest.dto.ResourceCreated;
 import com.tenx.ms.commons.tests.AbstractIntegrationTest;
 import com.tenx.ms.retail.RetailServiceApp;
+import com.tenx.ms.retail.product.rest.dto.Product;
 import org.apache.commons.io.FileUtils;
 import org.flywaydb.test.annotation.FlywayTest;
 import org.flywaydb.test.junit.FlywayTestExecutionListener;
@@ -87,13 +88,39 @@ public class TestProductController extends AbstractIntegrationTest {
 
     @Test
     @FlywayTest
-    public void createProductInStoreOk() throws IOException {
+    public void createAndGetProductInStoreOk() throws IOException {
         ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
         assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-
         ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
+
         ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId(),
             FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
         assertEquals("Product created", HttpStatus.CREATED, response.getStatusCode());
+        ResourceCreated responseProductId = mapper.readValue(response.getBody(), ResourceCreated.class);
+
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "?id=" + responseProductId.getId(), null, HttpMethod.GET);
+        assertEquals("Product by id OK", HttpStatus.OK, responseGet.getStatusCode());
+        Product responseBody = mapper.readValue(responseGet.getBody(), Product.class);
+        assertEquals("Product by id Product id", responseBody.getProductId(), Long.valueOf(1));
+        assertEquals("Get Product name", responseBody.getName(), "Shoes");
+    }
+
+    @Test
+    @FlywayTest
+    public void deleteProductInStoreOk() throws IOException {
+        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
+        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
+        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
+
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId(),
+            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
+        assertEquals("Product created", HttpStatus.CREATED, response.getStatusCode());
+        ResourceCreated responseProductId = mapper.readValue(response.getBody(), ResourceCreated.class);
+
+        ResponseEntity<String> responseDelete = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(), null, HttpMethod.DELETE);
+        assertEquals("Delete product OK", HttpStatus.NO_CONTENT, responseDelete.getStatusCode());
+
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "?id=" + responseProductId.getId(), null, HttpMethod.GET);
+        assertEquals("Product by id NOT FOUND", HttpStatus.NOT_FOUND, responseGet.getStatusCode());
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 /**
@@ -41,12 +42,23 @@ public class StoreService {
             collect(Collectors.toList());
     }
 
-    public Store upsertStore(Store store) {
+    public Store insertStore(Store store) {
         StoreEntity entity = storeConverter.apiModelToRepository(store);
         if (entity != null) {
             entity = storeRepository.save(entity);
         }
         return storeConverter.repositoryToApiModel(entity);
+    }
+
+    public Store updateStore(Long storeId, Store store) {
+        StoreEntity entity = storeRepository.findOne(storeId);
+        if (entity != null) {
+            entity.setName(store.getName());
+            entity = storeRepository.save(entity);
+            return storeConverter.repositoryToApiModel(entity);
+        } else {
+            throw new NoSuchElementException();
+        }
     }
 
     public void deleteStore(Long id) {
