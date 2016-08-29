@@ -1,0 +1,10 @@
+{
+    "first_name": "Guy",
+    "last_name": "Roger",
+    "email": "client@domian.co",
+    "phone": "5512345678",
+    "products": [{
+        "product_id": 1,
+        "count": 10
+    }]
+}
