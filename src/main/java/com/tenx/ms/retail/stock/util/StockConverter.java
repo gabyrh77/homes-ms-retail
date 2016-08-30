@@ -14,17 +14,11 @@ import java.util.function.Function;
 public class StockConverter {
 
     public Stock repositoryToApiModel(StockEntity stockEntity) {
-        if (stockEntity != null) {
-            return new Stock(stockEntity.getProduct().getId(), stockEntity.getProduct().getStore().getId(), stockEntity.getExistence());
-        }
-        return null;
+        return new Stock(stockEntity.getProduct().getId(), stockEntity.getProduct().getStore().getId(), stockEntity.getExistence());
     }
 
     public StockEntity apiModelToRepository(ProductEntity productEntity, Stock stock) {
-        if (stock != null) {
-            return new StockEntity(productEntity, stock.getCount());
-        }
-        return null;
+        return new StockEntity(productEntity, stock.getCount());
     }
 
     public Function<StockEntity, Stock> entityToStock = x -> new

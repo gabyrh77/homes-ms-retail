@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
 import java.io.IOException;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  * Created by goropeza on 24/08/16.
@@ -47,12 +46,7 @@ public class StoreController {
     )
     @RequestMapping(value = {"/{storeId:\\d+}"}, method = RequestMethod.GET)
     public Store getStoreById(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId) {
-        Store store =  storeService.findStoreById(storeId);
-        if (store == null) {
-            throw new NoSuchElementException();
-        } else {
-            return store;
-        }
+        return  storeService.findStoreById(storeId);
     }
 
     @ApiOperation(value = "Returns all stores")
@@ -76,7 +70,7 @@ public class StoreController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResourceCreated<Long> createStore(@ApiParam(name = "store", value = "Store data", required = true) @RequestBody Store store){
         Store newStore = storeService.insertStore(store);
-        return new ResourceCreated<Long>(newStore.getStoreId());
+        return new ResourceCreated<>(newStore.getStoreId());
     }
 
     @ApiOperation(value = "Updates a store given an id")
@@ -102,11 +96,7 @@ public class StoreController {
     @RequestMapping(value = {"/{storeId:\\d+}"}, method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteStore(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId) {
-        if(!storeService.exists(storeId)) {
-            throw  new NoSuchElementException();
-        } else {
-            storeService.deleteStore(storeId);
-        }
+        storeService.deleteStore(storeId);
     }
 
     @ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)

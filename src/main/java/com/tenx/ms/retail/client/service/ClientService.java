@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -21,10 +22,7 @@ public class ClientService {
     private ClientConverter clientConverter;
 
     public Client findClientById(Long clientId) {
-        if (clientId != null) {
-            return clientConverter.repositoryToApiModel(clientRepository.findOne(clientId));
-        }
-        return null;
+        return clientConverter.repositoryToApiModel(clientRepository.findOne(clientId));
     }
 
     public List<Client> findAllClients() {
@@ -41,15 +39,14 @@ public class ClientService {
 
     public Client insertClient(Client client) {
         ClientEntity entity = clientConverter.apiModelToRepository(client);
-        if (entity != null) {
-            entity = clientRepository.save(entity);
-        }
+        entity = clientRepository.save(entity);
         return clientConverter.repositoryToApiModel(entity);
     }
 
     public Client updateClient(Long storeId, Client client) {
-        ClientEntity entity = clientRepository.findOne(storeId);
-        if (entity != null) {
+        Optional<ClientEntity> result = clientRepository.findById(storeId);
+        if (result.isPresent()) {
+            ClientEntity entity = result.get();
             entity.setFirstName(client.getFirstName());
             entity.setLastName(client.getLastName());
             entity.setEmail(client.getEmail());

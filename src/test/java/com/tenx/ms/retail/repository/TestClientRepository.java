@@ -97,7 +97,7 @@ public class TestClientRepository {
         ClientEntity client = new ClientEntity("client@domain.co", "Alex", "Robbin", "5554321110");
         client = clientRepository.save(client);
         Long id =  client.getId();
-        client = clientRepository.findByEmail("client@domain.co");
+        client = clientRepository.findById(id).get();
         assertEquals("Client found", id, client.getId());
 
         client.setFirstName("Alexander");

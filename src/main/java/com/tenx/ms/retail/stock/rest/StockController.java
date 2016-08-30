@@ -1,7 +1,6 @@
 package com.tenx.ms.retail.stock.rest;
 
 import com.tenx.ms.commons.rest.RestConstants;
-import com.tenx.ms.retail.product.service.ProductService;
 import com.tenx.ms.retail.stock.rest.dto.Stock;
 import com.tenx.ms.retail.stock.service.StockService;
 import io.swagger.annotations.Api;
@@ -24,7 +23,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
 import java.io.IOException;
-import java.util.NoSuchElementException;
 
 /**
  * Created by goropeza on 27/08/16.
@@ -33,8 +31,6 @@ import java.util.NoSuchElementException;
 @RestController("stockControllerV1")
 @RequestMapping(RestConstants.VERSION_ONE + "/stock")
 public class StockController {
-    @Autowired
-    private ProductService productService;
 
     @Autowired
     private StockService stockService;
@@ -47,14 +43,10 @@ public class StockController {
         @ApiResponse(code = 500, message = "Internal server error")}
     )
     @RequestMapping(value = {"/{storeId:\\d+}/{productId:\\d+}"}, method = RequestMethod.POST)
-    public void updateStock(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
+    public Stock updateStock(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
                             @ApiParam(name = "productId", value = "Product id") @PathVariable() Long productId,
                             @ApiParam(name = "stock", value = "Stock data", required = true) @RequestBody Stock stock) {
-        if(!productService.existsInStore(productId, storeId)) {
-            throw new NoSuchElementException();
-        } else {
-            stockService.upsertStock(productId, stock);
-        }
+        return stockService.upsertStock(storeId, productId, stock);
     }
 
     @ApiOperation(value = "Return stock by store id and product id")
@@ -64,13 +56,9 @@ public class StockController {
         @ApiResponse(code = 500, message = "Internal server error")}
     )
     @RequestMapping(value = {"/{storeId:\\d+}/{productId:\\d+}"}, method = RequestMethod.GET)
-    public Stock getStoreById(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
+    public Stock getStockByProductId(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
                               @ApiParam(name = "productId", value = "Product id") @PathVariable() Long productId) {
-        if(!productService.existsInStore(productId, storeId)) {
-            throw new NoSuchElementException();
-        } else {
-            return stockService.findStockByProduct(productId);
-        }
+        return stockService.findStockByProduct(storeId, productId);
     }
 
     @ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)

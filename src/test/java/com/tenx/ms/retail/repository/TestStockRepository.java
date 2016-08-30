@@ -81,7 +81,7 @@ public class TestStockRepository {
         stock = stockRepository.save(stock);
         assertTrue("Stock created", stock.getId() > 0);
 
-        stock = stockRepository.findByProduct(product);
+        stock = stockRepository.findByProduct(product).get();
         assertEquals("Stock updated", stock.getProduct().getId(), productId);
         assertEquals("Stock existence correct", stock.getExistence(), Long.valueOf(100));
     }

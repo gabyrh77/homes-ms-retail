@@ -9,6 +9,9 @@ import com.tenx.ms.retail.stock.util.StockConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
 /**
  * Created by goropeza on 26/08/16.
  */
@@ -23,24 +26,35 @@ public class StockService {
     @Autowired
     private StockConverter stockConverter;
 
-    public void upsertStock(Long productId, Stock stock) {
-        ProductEntity product = productRepository.findOne(productId);
-        StockEntity stockEntity = stockRepository.findByProduct(product);
-        if (stockEntity != null) {
-            stockEntity.setExistence(stock.getCount());
-        } else {
-            stockEntity = stockConverter.apiModelToRepository(product, stock);
-        }
-        stockRepository.save(stockEntity);
-    }
-
-    public Stock findStockByProduct(Long productId) {
-        ProductEntity product = productRepository.findOne(productId);
-        StockEntity stockEntity = stockRepository.findByProduct(product);
-        if (stockEntity != null) {
+    public Stock upsertStock(Long storeId, Long productId, Stock stock) {
+        StockEntity stockEntity;
+        Optional<ProductEntity> result = productRepository.findById(productId);
+        if (result.isPresent() && result.get().getStore().getId().equals(storeId)) {
+            Optional<StockEntity> resultStock = stockRepository.findByProduct(result.get());
+            if (resultStock.isPresent()) {
+                stockEntity = resultStock.get();
+                stockEntity.setExistence(stock.getCount());
+            } else {
+                stockEntity = stockConverter.apiModelToRepository(result.get(), stock);
+            }
+            stockEntity = stockRepository.save(stockEntity);
             return stockConverter.repositoryToApiModel(stockEntity);
         } else {
-            return new Stock(productId, product.getStore().getId(), 0L);
+            throw new NoSuchElementException();
+        }
+    }
+
+    public Stock findStockByProduct(Long storeId, Long productId) {
+        Optional<ProductEntity> result = productRepository.findById(productId);
+        if (result.isPresent() && result.get().getStore().getId().equals(storeId)) {
+            Optional<StockEntity> resultStock = stockRepository.findByProduct(result.get());
+            if (resultStock.isPresent()) {
+                return stockConverter.repositoryToApiModel(resultStock.get());
+            } else {
+                return new Stock(productId, storeId, 0L);
+            }
+        } else {
+            throw new NoSuchElementException();
         }
     }
 }

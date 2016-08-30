@@ -13,17 +13,11 @@ import java.util.function.Function;
 public class StoreConverter {
 
     public Store repositoryToApiModel(StoreEntity storeEntity) {
-        if (storeEntity != null) {
-            return new Store(storeEntity.getId(), storeEntity.getName());
-        }
-        return null;
+        return new Store(storeEntity.getId(), storeEntity.getName());
     }
 
     public StoreEntity apiModelToRepository(Store store) {
-        if (store != null) {
-            return new StoreEntity(store.getName());
-        }
-        return null;
+        return new StoreEntity(store.getName());
     }
 
     public Function<StoreEntity, Store> entityToStore = x -> new

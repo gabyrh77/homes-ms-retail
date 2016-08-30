@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -28,77 +29,70 @@ public class ProductService {
     @Autowired
     private ProductConverter productConverter;
 
-    public boolean existsInStore(Long productId, Long storeId) {
-        StoreEntity store = storeRepository.findOne(storeId);
-        if (store != null) {
-            ProductEntity productExists = productRepository.findByIdAndStore(productId, store);
-            return productExists != null;
+    public void deleteProduct(Long storeId, Long productId) {
+        Optional<ProductEntity> result = productRepository.findById(productId);
+        if (!result.isPresent() || !storeId.equals(result.get().getStore().getId())) {
+            throw new NoSuchElementException();
         }
-        return false;
-    }
-
-    public void deleteProduct(Long productId) {
         productRepository.delete(productId);
     }
 
     public Product createInStore(Product product, Long storeId) {
-        StoreEntity store = storeRepository.findOne(storeId);
-        if (store == null) {
+        Optional<StoreEntity> result = storeRepository.findById(storeId);
+        if (!result.isPresent()) {
             throw new NoSuchElementException();
-        }
-
-        ProductEntity newEntity = productConverter.apiModelToRepository(store, product);
-        if (newEntity != null) {
+        } else {
+            ProductEntity newEntity = productConverter.apiModelToRepository(result.get(), product);
             newEntity = productRepository.save(newEntity);
+            return productConverter.repositoryToApiModel(newEntity);
         }
-        return productConverter.repositoryToApiModel(newEntity);
     }
 
     public Product updateProductInStore(Long storeId, Long productId, Product product) {
-        ProductEntity productEntity = productRepository.findOne(productId);
-        if (productEntity == null || !storeId.equals(productEntity.getStore().getId())) {
+        Optional<ProductEntity> result = productRepository.findById(productId);
+        if (!result.isPresent() || !storeId.equals(result.get().getStore().getId())) {
             throw new NoSuchElementException();
+        } else {
+            ProductEntity productEntity = result.get();
+            productEntity.setSku(product.getSku());
+            productEntity.setName(product.getName());
+            productEntity.setDescription(product.getDescription());
+            productEntity.setPrice(product.getPrice());
+            productEntity = productRepository.save(productEntity);
+            return productConverter.repositoryToApiModel(productEntity);
         }
-
-        productEntity.setSku(product.getSku());
-        productEntity.setName(product.getName());
-        productEntity.setDescription(product.getDescription());
-        productEntity.setPrice(product.getPrice());
-        productEntity = productRepository.save(productEntity);
-        return productConverter.repositoryToApiModel(productEntity);
     }
 
     public List<Product> findAllProductsByStore(Long storeId) {
-        StoreEntity store = storeRepository.findOne(storeId);
-        if (store == null) {
+        Optional<StoreEntity> result = storeRepository.findById(storeId);
+        if (!result.isPresent()) {
             throw new NoSuchElementException();
         }
-
-        return productRepository.findByStore(store).stream().map(productConverter.entityToProduct).collect(Collectors.toList());
+        return productRepository.findByStore(result.get()).stream().map(productConverter.entityToProduct).collect(Collectors.toList());
     }
 
     public Product findProductByIdAndStore(Long productId, Long storeId) {
-        StoreEntity store = storeRepository.findOne(storeId);
-        if (store == null) {
+        Optional<StoreEntity> result = storeRepository.findById(storeId);
+        if (!result.isPresent()) {
             throw new NoSuchElementException();
         }
 
-        ProductEntity productEntity = productRepository.findByIdAndStore(productId, store);
-        if (productEntity == null) {
+        Optional<ProductEntity> resultProduct = productRepository.findByIdAndStore(productId, result.get());
+        if (!resultProduct.isPresent()) {
             throw new NoSuchElementException();
         }
-        return productConverter.repositoryToApiModel(productEntity);
+        return productConverter.repositoryToApiModel(resultProduct.get());
     }
 
     public Product findProductByNameAndStore(String name, Long storeId) {
-        StoreEntity store = storeRepository.findOne(storeId);
-        if (store == null) {
+        Optional<StoreEntity> result = storeRepository.findById(storeId);
+        if (!result.isPresent()) {
             throw new NoSuchElementException();
         }
-        ProductEntity productEntity = productRepository.findByNameAndStore(name, store);
-        if (productEntity == null) {
+        Optional<ProductEntity> resultProduct = productRepository.findByNameAndStore(name, result.get());
+        if (!resultProduct.isPresent()) {
             throw new NoSuchElementException();
         }
-        return productConverter.repositoryToApiModel(productEntity);
+        return productConverter.repositoryToApiModel(resultProduct.get());
     }
 }

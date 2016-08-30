@@ -15,9 +15,7 @@ public class OrderConverter {
     private ClientConverter clientConverter;
 
     public Order repositoryToApiModel(OrderEntity entity) {
-        if (entity != null) {
-            return new Order(entity.getId(), entity.getStore().getId(), clientConverter.repositoryToApiModel(entity.getClient()), entity.getCreatedDate(), entity.getStatus());
-        }
-        return null;
+        return new Order(entity.getId(), entity.getStore().getId(), clientConverter.repositoryToApiModel(entity.getClient()),
+            entity.getCreatedDate(), entity.getStatus());
     }
 }

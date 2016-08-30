@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -24,17 +25,21 @@ public class StoreService {
     private StoreConverter storeConverter;
 
     public Store findStoreById(Long id) {
-        if (id != null) {
-            return storeConverter.repositoryToApiModel(storeRepository.findOne(id));
+        Optional<StoreEntity> result = storeRepository.findById(id);
+        if (result.isPresent()) {
+            return storeConverter.repositoryToApiModel(result.get());
+        } else {
+            throw new NoSuchElementException();
         }
-        return null;
     }
 
     public Store findStoreByName(String name) {
-        if (name != null) {
-            return storeConverter.repositoryToApiModel(storeRepository.findByName(name));
+        Optional<StoreEntity> result = storeRepository.findByName(name);
+        if (result.isPresent()) {
+            return storeConverter.repositoryToApiModel(result.get());
+        } else {
+            throw new NoSuchElementException();
         }
-        return null;
     }
 
     public List<Store> findAllStores() {
@@ -44,15 +49,14 @@ public class StoreService {
 
     public Store insertStore(Store store) {
         StoreEntity entity = storeConverter.apiModelToRepository(store);
-        if (entity != null) {
-            entity = storeRepository.save(entity);
-        }
+        entity = storeRepository.save(entity);
         return storeConverter.repositoryToApiModel(entity);
     }
 
     public Store updateStore(Long storeId, Store store) {
-        StoreEntity entity = storeRepository.findOne(storeId);
-        if (entity != null) {
+        Optional<StoreEntity> result = storeRepository.findById(storeId);
+        if (result.isPresent()) {
+            StoreEntity entity = result.get();
             entity.setName(store.getName());
             entity = storeRepository.save(entity);
             return storeConverter.repositoryToApiModel(entity);
@@ -62,7 +66,11 @@ public class StoreService {
     }
 
     public void deleteStore(Long id) {
-        storeRepository.delete(id);
+        if(!exists(id)) {
+            throw new NoSuchElementException();
+        } else {
+            storeRepository.delete(id);
+        }
     }
 
     public boolean exists(Long id) {

@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
 import java.io.IOException;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  * Created by goropeza on 26/08/16.
@@ -36,6 +35,7 @@ import java.util.NoSuchElementException;
 @RestController("productControllerV1")
 @RequestMapping(RestConstants.VERSION_ONE + "/products")
 public class ProductController {
+
     @Autowired
     private ProductService productService;
 
@@ -60,7 +60,6 @@ public class ProductController {
     @RequestMapping(value = {"/{storeId:\\d+}"}, params={"id"}, method = RequestMethod.GET)
     public Product findProductInStoreById(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
                                           @ApiParam(name = "productId", value = "Product id", required = true) @RequestParam Long id) {
-
         return productService.findProductByIdAndStore(id, storeId);
     }
 
@@ -105,7 +104,6 @@ public class ProductController {
                             @ApiParam(name = "productId", value = "Product id") @PathVariable() Long productId,
                             @ApiParam(name = "product", value = "Product data", required = true) @RequestBody Product product) {
         return productService.updateProductInStore(storeId, productId, product);
-
     }
 
     @ApiOperation(value = "Deletes a product from a store given an id")
@@ -118,11 +116,7 @@ public class ProductController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProduct(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
                             @ApiParam(name = "productId", value = "Product id") @PathVariable() Long productId) {
-        if(!productService.existsInStore(productId, storeId)) {
-            throw new NoSuchElementException();
-        } else {
-            productService.deleteProduct(productId);
-        }
+        productService.deleteProduct(storeId, productId);
     }
 
     @ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)

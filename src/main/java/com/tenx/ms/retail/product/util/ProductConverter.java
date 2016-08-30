@@ -14,19 +14,13 @@ import java.util.function.Function;
 public class ProductConverter {
 
     public Product repositoryToApiModel(ProductEntity productEntity) {
-        if (productEntity != null) {
-            return new Product(productEntity.getId(), productEntity.getStore().getId(), productEntity.getName(), productEntity.getDescription(),
+        return new Product(productEntity.getId(), productEntity.getStore().getId(), productEntity.getName(), productEntity.getDescription(),
                 productEntity.getSku(), productEntity.getPrice());
-        }
-        return null;
     }
 
     public ProductEntity apiModelToRepository(StoreEntity store, Product product) {
-        if (product != null) {
-            return new ProductEntity(product.getSku(), product.getName(), product.getDescription(),
-                product.getPrice(), store);
-        }
-        return null;
+        return new ProductEntity(product.getSku(), product.getName(), product.getDescription(),
+            product.getPrice(), store);
     }
 
     public Function<ProductEntity, Product> entityToProduct = x -> new

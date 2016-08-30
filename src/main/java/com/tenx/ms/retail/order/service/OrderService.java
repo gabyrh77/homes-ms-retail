@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import javax.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 /**
  * Created by goropeza on 28/08/16.
@@ -46,9 +47,14 @@ public class OrderService {
 
     @SuppressWarnings("PMD")
     public Order createOrder(Long storeId, Order order) {
-        StoreEntity store = storeRepository.findOne(storeId);
-        if (store == null) {
-            throw new NoSuchElementException();
+        ClientEntity client;
+        StoreEntity store;
+
+        Optional<StoreEntity> resultStore = storeRepository.findById(storeId);
+        if (!resultStore.isPresent()) {
+            throw new NoSuchElementException("Store not found");
+        } else {
+            store = resultStore.get();
         }
 
         List<OrderDetail> details = order.getProducts();
@@ -56,13 +62,14 @@ public class OrderService {
             throw new ConstraintViolationException("Empty order details", null);
         }
 
-        ClientEntity client;
         if (order.getClientId() == null) {
             throw new ConstraintViolationException("Order must have a clientId", null);
         } else {
-            client = clientRepository.findOne(order.getClientId());
-            if (client == null) {
+            Optional<ClientEntity> resultClient = clientRepository.findById(order.getClientId());
+            if (!resultClient.isPresent()) {
                 throw new NoSuchElementException("Client not found");
+            } else {
+                client = resultClient.get();
             }
         }
 
@@ -78,17 +85,17 @@ public class OrderService {
             if (product == null || !product.getStore().getId().equals(storeId)) {
                 result.getErrors().add(detail);
             } else {
-                StockEntity stockProduct = stockRepository.findByProduct(product);
-                if (stockProduct != null && stockProduct.getExistence() >= detail.getCount()) {
+                Optional<StockEntity> resultStock = stockRepository.findByProduct(product);
+                long existence = resultStock.isPresent() ? 0: resultStock.get().getExistence();
+                if (existence >= detail.getCount()) {
                     createOrderDetail(result, detail, newOrder, product, OrderDetailStatusEnum.ORDERED);
-                    decreaseStock(stockProduct, detail.getCount());
+                    decreaseStock(resultStock.get(), detail.getCount());
                 } else {
-                    long existence = stockProduct == null ? 0: stockProduct.getExistence();
                     if (existence > 0) {
                         long backordered = detail.getCount() - existence;
                         OrderDetail detailOrdered = new OrderDetail(product.getId(), existence);
                         createOrderDetail(result, detailOrdered, newOrder, product, OrderDetailStatusEnum.ORDERED);
-                        decreaseStock(stockProduct, detailOrdered.getCount());
+                        decreaseStock(resultStock.get(), detailOrdered.getCount());
                         OrderDetail detailBackordered = new OrderDetail(product.getId(), backordered);
                         createOrderDetail(result, detailBackordered, newOrder, product, OrderDetailStatusEnum.BACKORDERED);
                     } else {
@@ -110,10 +117,15 @@ public class OrderService {
                 result.getBackorder().add(detail);
             }
         } catch (DataIntegrityViolationException ex) {
-            detailEntity = orderDetailRepository.findByOrderAndProductAndStatus(orderEntity, productEntity, status);
-            detailEntity.setCount(detailEntity.getCount() + detail.getCount());
-            orderDetailRepository.save(detailEntity);
-            result.getProducts().stream().filter(x -> x.getProductId().equals(productEntity.getId())).forEach(x -> x.setCount(x.getCount() + detail.getCount()));
+            Optional<OrderDetailEntity> resultDetail = orderDetailRepository.findByOrderAndProductAndStatus(orderEntity, productEntity, status);
+            if (resultDetail.isPresent()) {
+                detailEntity = resultDetail.get();
+                detailEntity.setCount(detailEntity.getCount() + detail.getCount());
+                orderDetailRepository.save(detailEntity);
+                result.getProducts().stream().filter(x -> x.getProductId().equals(productEntity.getId())).forEach(x -> x.setCount(x.getCount() + detail.getCount()));
+            } else {
+                throw ex;
+            }
         }
     }
 
