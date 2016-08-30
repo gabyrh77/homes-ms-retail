@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolationException;
 import java.io.IOException;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  * Created by goropeza on 30/08/16.
@@ -46,12 +45,7 @@ public class ClientController {
     )
     @RequestMapping(value = {"/{clientId:\\d+}"}, method = RequestMethod.GET)
     public Client getClientById(@ApiParam(name = "clientId", value = "Client id") @PathVariable() Long clientId) {
-        Client result =  clientService.findClientById(clientId);
-        if (result == null) {
-            throw new NoSuchElementException();
-        } else {
-            return result;
-        }
+        return clientService.findClientById(clientId);
     }
 
     @ApiOperation(value = "Returns all clients")
@@ -89,7 +83,6 @@ public class ClientController {
     @RequestMapping(value = {"/{clientId:\\d+}"}, method = RequestMethod.PUT)
     public Client updateClient(@ApiParam(name = "clientId", value = "Client id") @PathVariable() Long clientId,
                              @ApiParam(name = "client", value = "Client data", required = true) @RequestBody Client client) {
-
         return clientService.updateClient(clientId, client);
     }
 
@@ -101,12 +94,8 @@ public class ClientController {
     )
     @RequestMapping(value = {"/{clientId:\\d+}"}, method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteCliet(@ApiParam(name = "clientId", value = "Client id") @PathVariable() Long clientId) {
-        if(!clientService.exists(clientId)) {
-            throw  new NoSuchElementException();
-        } else {
-            clientService.deleteClient(clientId);
-        }
+    public void deleteClient(@ApiParam(name = "clientId", value = "Client id") @PathVariable() Long clientId) {
+        clientService.deleteClient(clientId);
     }
 
     @ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)

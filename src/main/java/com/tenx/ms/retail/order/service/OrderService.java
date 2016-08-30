@@ -49,6 +49,7 @@ public class OrderService {
     public Order createOrder(Long storeId, Order order) {
         ClientEntity client;
         StoreEntity store;
+        ProductEntity product;
 
         Optional<StoreEntity> resultStore = storeRepository.findById(storeId);
         if (!resultStore.isPresent()) {
@@ -75,36 +76,36 @@ public class OrderService {
 
         OrderEntity newOrder = new OrderEntity(store, client);
         newOrder = orderRepository.save(newOrder);
-        Order result = orderConverter.repositoryToApiModel(newOrder);
-        ProductEntity product;
+        Order resultOrder = orderConverter.repositoryToApiModel(newOrder);
+
         for(OrderDetail detail: details) {
-            product = null;
-            if (detail != null && detail.getProductId() != null && detail.getCount() != null) {
-                product = productRepository.findOne(detail.getProductId());
-            }
-            if (product == null || !product.getStore().getId().equals(storeId)) {
-                result.getErrors().add(detail);
+            long productId = detail != null && detail.getProductId() != null ? detail.getProductId() : 0;
+            Optional<ProductEntity> resultProduct = productRepository.findById(productId);
+            if (!resultProduct.isPresent() || !resultProduct.get().getStore().getId().equals(storeId) || detail == null ||
+                detail.getCount() == null  || detail.getCount() <= 0) {
+                resultOrder.getErrors().add(detail);
             } else {
+                product = resultProduct.get();
                 Optional<StockEntity> resultStock = stockRepository.findByProduct(product);
-                long existence = resultStock.isPresent() ? 0: resultStock.get().getExistence();
+                long existence = resultStock.isPresent() ? resultStock.get().getExistence() : 0;
                 if (existence >= detail.getCount()) {
-                    createOrderDetail(result, detail, newOrder, product, OrderDetailStatusEnum.ORDERED);
+                    createOrderDetail(resultOrder, detail, newOrder, product, OrderDetailStatusEnum.ORDERED);
                     decreaseStock(resultStock.get(), detail.getCount());
                 } else {
                     if (existence > 0) {
                         long backordered = detail.getCount() - existence;
                         OrderDetail detailOrdered = new OrderDetail(product.getId(), existence);
-                        createOrderDetail(result, detailOrdered, newOrder, product, OrderDetailStatusEnum.ORDERED);
+                        createOrderDetail(resultOrder, detailOrdered, newOrder, product, OrderDetailStatusEnum.ORDERED);
                         decreaseStock(resultStock.get(), detailOrdered.getCount());
                         OrderDetail detailBackordered = new OrderDetail(product.getId(), backordered);
-                        createOrderDetail(result, detailBackordered, newOrder, product, OrderDetailStatusEnum.BACKORDERED);
+                        createOrderDetail(resultOrder, detailBackordered, newOrder, product, OrderDetailStatusEnum.BACKORDERED);
                     } else {
-                        createOrderDetail(result, detail, newOrder, product, OrderDetailStatusEnum.BACKORDERED);
+                        createOrderDetail(resultOrder, detail, newOrder, product, OrderDetailStatusEnum.BACKORDERED);
                     }
                 }
             }
         }
-        return result;
+        return resultOrder;
     }
 
     private void createOrderDetail(Order result, OrderDetail detail, OrderEntity orderEntity, ProductEntity productEntity, OrderDetailStatusEnum status) {

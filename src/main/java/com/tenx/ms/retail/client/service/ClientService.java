@@ -22,7 +22,12 @@ public class ClientService {
     private ClientConverter clientConverter;
 
     public Client findClientById(Long clientId) {
-        return clientConverter.repositoryToApiModel(clientRepository.findOne(clientId));
+        Optional<ClientEntity> result = clientRepository.findById(clientId);
+        if (result.isPresent()) {
+            return clientConverter.repositoryToApiModel(result.get());
+        } else {
+            throw new NoSuchElementException();
+        }
     }
 
     public List<Client> findAllClients() {
@@ -30,7 +35,11 @@ public class ClientService {
     }
 
     public void deleteClient(Long clientId) {
-        clientRepository.delete(clientId);
+        if(!exists(clientId)) {
+            throw new NoSuchElementException();
+        } else {
+            clientRepository.delete(clientId);
+        }
     }
 
     public boolean exists(Long clientId) {

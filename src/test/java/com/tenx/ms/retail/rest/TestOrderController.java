@@ -11,6 +11,7 @@ import com.tenx.ms.retail.stock.rest.dto.Stock;
 import org.apache.commons.io.FileUtils;
 import org.flywaydb.test.annotation.FlywayTest;
 import org.flywaydb.test.junit.FlywayTestExecutionListener;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 /**
@@ -81,7 +83,24 @@ public class TestOrderController extends AbstractIntegrationTest {
     @Value("classpath:assets/new_order_client_invalid.json")
     private File newOrderClientInvalidRequest;
 
+    private Integer storeId;
+    private Integer productId;
+
+    @Before
+    public void setUp() throws IOException {
+        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
+        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
+        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
+        storeId = (Integer)responseStoreId.getId();
+        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + storeId,
+            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
+        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
+        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
+        productId = (Integer)responseProductId.getId();
+    }
+
     @Test
+    @FlywayTest
     public void createOrderNotFound() throws IOException {
         ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + "99", FileUtils.readFileToString(newStockRequest), HttpMethod.POST);
         assertEquals("Store not found", HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -90,20 +109,7 @@ public class TestOrderController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void createOrderClientInvalid() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
-            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
-        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
-        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseStock = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
-            FileUtils.readFileToString(newStockRequest), HttpMethod.POST);
-        assertEquals("Stock created", HttpStatus.OK, responseStock.getStatusCode());
-
-        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId(),
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId,
             FileUtils.readFileToString(newOrderClientInvalidRequest), HttpMethod.POST);
         assertEquals("Order not created, client not found", HttpStatus.NOT_FOUND, response.getStatusCode());
     }
@@ -111,16 +117,7 @@ public class TestOrderController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void createOrderAndClientDataOk() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
-            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
-        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
-        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseStock = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseStock = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + storeId + "/" + productId,
             FileUtils.readFileToString(newStockRequest), HttpMethod.POST);
         assertEquals("Stock created", HttpStatus.OK, responseStock.getStatusCode());
 
@@ -128,12 +125,12 @@ public class TestOrderController extends AbstractIntegrationTest {
         assertEquals("Client created", HttpStatus.CREATED, responseClient.getStatusCode());
         ResourceCreated responseClientId = mapper.readValue(responseClient.getBody(), ResourceCreated.class);
 
-        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId(),
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId,
             FileUtils.readFileToString(newOrderRequest), HttpMethod.POST);
         assertEquals("Order created", HttpStatus.CREATED, response.getStatusCode());
         Order orderResponse = mapper.readValue(response.getBody(), Order.class);
         assertEquals("Order created correct order id", orderResponse.getOrderId(), Long.valueOf(1));
-        assertEquals("Order created correct store id", orderResponse.getStoreId().intValue(), responseStoreId.getId());
+        assertEquals("Order created correct store id", orderResponse.getStoreId().intValue(), storeId.intValue());
         assertEquals("Order created correct client id", orderResponse.getClientId().intValue(), responseClientId.getId());
 
         assertEquals("Order created correct client id", orderResponse.getClient().getClientId(), orderResponse.getClientId());
@@ -146,16 +143,7 @@ public class TestOrderController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void createOrderAndUpdateStockOk() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
-            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
-        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
-        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseStock = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseStock = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + storeId + "/" + productId,
             FileUtils.readFileToString(newStockRequest), HttpMethod.POST);
         assertEquals("Stock created", HttpStatus.OK, responseStock.getStatusCode());
 
@@ -163,12 +151,12 @@ public class TestOrderController extends AbstractIntegrationTest {
         assertEquals("Client created", HttpStatus.CREATED, responseClient.getStatusCode());
         ResourceCreated responseClientId = mapper.readValue(responseClient.getBody(), ResourceCreated.class);
 
-        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId(),
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId,
             FileUtils.readFileToString(newOrderRequest), HttpMethod.POST);
         assertEquals("Order created", HttpStatus.CREATED, response.getStatusCode());
         Order orderResponse = mapper.readValue(response.getBody(), Order.class);
         assertEquals("Order created correct order id", orderResponse.getOrderId(), Long.valueOf(1));
-        assertEquals("Order created correct store id", orderResponse.getStoreId().intValue(), responseStoreId.getId());
+        assertEquals("Order created correct store id", orderResponse.getStoreId().intValue(), storeId.intValue());
         assertEquals("Order created correct client id", orderResponse.getClientId().intValue(), responseClientId.getId());
 
         assertEquals("Order created correct detail", orderResponse.getProducts().size(), 1);
@@ -178,7 +166,7 @@ public class TestOrderController extends AbstractIntegrationTest {
         assertEquals("Order created correct detail backorder", orderResponse.getBackorder().size(), 0);
         assertEquals("Order created correct detail errors", orderResponse.getErrors().size(), 0);
 
-        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + storeId + "/" + productId,
             null, HttpMethod.GET);
         assertEquals("Stock get OK", HttpStatus.OK, responseGet.getStatusCode());
         Stock responseGetBody = mapper.readValue(responseGet.getBody(), Stock.class);
@@ -188,41 +176,33 @@ public class TestOrderController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void createOrderBackorderAndUpdateStockOk() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
-            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
-        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
-        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseStock = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseStock = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + storeId + "/" + productId,
             FileUtils.readFileToString(newStockRequest), HttpMethod.POST);
         assertEquals("Stock created", HttpStatus.OK, responseStock.getStatusCode());
+        Stock stockResponse = mapper.readValue(responseStock.getBody(), Stock.class);
+        assertNotNull("Stock response not null", stockResponse);
+        assertEquals("Stock count OK", stockResponse.getCount(), Long.valueOf(50));
 
         ResponseEntity<String> responseClient = getJSONResponse(template, String.format(TestClientController.REQUEST_URI, basePath()), FileUtils.readFileToString(newClientRequest), HttpMethod.POST);
         assertEquals("Client created", HttpStatus.CREATED, responseClient.getStatusCode());
         ResourceCreated responseClientId = mapper.readValue(responseClient.getBody(), ResourceCreated.class);
 
-        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId(),
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId,
             FileUtils.readFileToString(newOrderBackorderRequest), HttpMethod.POST);
         assertEquals("Order created", HttpStatus.CREATED, response.getStatusCode());
         Order orderResponse = mapper.readValue(response.getBody(), Order.class);
         assertEquals("Order created correct order id", orderResponse.getOrderId(), Long.valueOf(1));
-        assertEquals("Order created correct store id", orderResponse.getStoreId().intValue(), responseStoreId.getId());
+        assertEquals("Order created correct store id", orderResponse.getStoreId().intValue(), storeId.intValue());
         assertEquals("Order created correct client id", orderResponse.getClientId().intValue(), responseClientId.getId());
         assertEquals("Order created correct detail ordered", orderResponse.getProducts().size(), 1);
         assertEquals("Order created correct ordered product id", orderResponse.getProducts().get(0).getProductId(), Long.valueOf(1));
         assertEquals("Order created correct ordered product count", orderResponse.getProducts().get(0).getCount(), Long.valueOf(50));
-
         assertEquals("Order created correct detail backordered", orderResponse.getBackorder().size(), 1);
         assertEquals("Order created correct backordered product id", orderResponse.getBackorder().get(0).getProductId(), Long.valueOf(1));
         assertEquals("Order created correct backordered product count", orderResponse.getBackorder().get(0).getCount(), Long.valueOf(10));
-
         assertEquals("Order created correct detail errors", orderResponse.getErrors().size(), 0);
 
-        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + storeId + "/" + productId,
             null, HttpMethod.GET);
         assertEquals("Stock get OK", HttpStatus.OK, responseGet.getStatusCode());
         Stock responseGetBody = mapper.readValue(responseGet.getBody(), Stock.class);
@@ -232,16 +212,7 @@ public class TestOrderController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void createOrderWithErrorsOk() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
-            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
-        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
-        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseStock = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseStock = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + storeId + "/" + productId,
             FileUtils.readFileToString(newStockRequest), HttpMethod.POST);
         assertEquals("Stock created", HttpStatus.OK, responseStock.getStatusCode());
 
@@ -249,12 +220,12 @@ public class TestOrderController extends AbstractIntegrationTest {
         assertEquals("Client created", HttpStatus.CREATED, responseClient.getStatusCode());
         ResourceCreated responseClientId = mapper.readValue(responseClient.getBody(), ResourceCreated.class);
 
-        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId(),
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId,
             FileUtils.readFileToString(newOrderErrorsRequest), HttpMethod.POST);
         assertEquals("Order created", HttpStatus.CREATED, response.getStatusCode());
         Order orderResponse = mapper.readValue(response.getBody(), Order.class);
         assertEquals("Order created correct order id", orderResponse.getOrderId(), Long.valueOf(1));
-        assertEquals("Order created correct store id", orderResponse.getStoreId().intValue(), responseStoreId.getId());
+        assertEquals("Order created correct store id", orderResponse.getStoreId().intValue(), storeId.intValue());
         assertEquals("Order created correct client id", orderResponse.getClientId().intValue(), responseClientId.getId());
         assertEquals("Order created correct detail ordered", orderResponse.getProducts().size(), 1);
         assertEquals("Order created correct ordered product id", orderResponse.getProducts().get(0).getProductId(), Long.valueOf(1));
@@ -265,7 +236,7 @@ public class TestOrderController extends AbstractIntegrationTest {
         assertEquals("Order created correct error product id", orderResponse.getErrors().get(0).getProductId(), Long.valueOf(10));
         assertEquals("Order created correct error product count", orderResponse.getErrors().get(0).getCount(), Long.valueOf(25));
 
-        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + storeId + "/" + productId,
             null, HttpMethod.GET);
         assertEquals("Stock get OK", HttpStatus.OK, responseGet.getStatusCode());
         Stock responseGetBody = mapper.readValue(responseGet.getBody(), Stock.class);
@@ -275,20 +246,11 @@ public class TestOrderController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void createOrderDetailNull() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
-            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
-        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
-        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseStock = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseStock = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + storeId + "/" + productId,
             FileUtils.readFileToString(newStockRequest), HttpMethod.POST);
         assertEquals("Stock created", HttpStatus.OK, responseStock.getStatusCode());
 
-        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId(),
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId,
             FileUtils.readFileToString(newOrderDetailNullRequest), HttpMethod.POST);
         assertEquals("Order not created, details null", HttpStatus.PRECONDITION_FAILED, response.getStatusCode());
     }
@@ -296,16 +258,7 @@ public class TestOrderController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void createOrderDetailProductIdNull() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
-            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
-        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
-        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseStock = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseStock = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + storeId + "/" + productId,
             FileUtils.readFileToString(newStockRequest), HttpMethod.POST);
         assertEquals("Stock created", HttpStatus.OK, responseStock.getStatusCode());
 
@@ -313,13 +266,13 @@ public class TestOrderController extends AbstractIntegrationTest {
         assertEquals("Client created", HttpStatus.CREATED, responseClient.getStatusCode());
         ResourceCreated responseClientId = mapper.readValue(responseClient.getBody(), ResourceCreated.class);
 
-        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId(),
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId,
             FileUtils.readFileToString(newOrderProductIdNullRequest), HttpMethod.POST);
         assertEquals("Order created", HttpStatus.CREATED, response.getStatusCode());
 
         Order orderResponse = mapper.readValue(response.getBody(), Order.class);
         assertEquals("Order created correct order id", orderResponse.getOrderId(), Long.valueOf(1));
-        assertEquals("Order created correct store id", orderResponse.getStoreId().intValue(), responseStoreId.getId());
+        assertEquals("Order created correct store id", orderResponse.getStoreId().intValue(), storeId.intValue());
         assertEquals("Order created correct client id", orderResponse.getClientId().intValue(), responseClientId.getId());
         assertEquals("Order created correct detail ordered", orderResponse.getProducts().size(), 1);
         assertEquals("Order created correct ordered product id", orderResponse.getProducts().get(0).getProductId(), Long.valueOf(1));
@@ -330,7 +283,7 @@ public class TestOrderController extends AbstractIntegrationTest {
         assertNull("Order created correct error product id", orderResponse.getErrors().get(0).getProductId());
         assertEquals("Order created correct error product count", orderResponse.getErrors().get(0).getCount(), Long.valueOf(10));
 
-        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(TestStockController.REQUEST_URI, basePath()) + storeId + "/" + productId,
             null, HttpMethod.GET);
         assertEquals("Stock get OK", HttpStatus.OK, responseGet.getStatusCode());
         Stock responseGetBody = mapper.readValue(responseGet.getBody(), Stock.class);

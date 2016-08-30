@@ -10,6 +10,7 @@ import com.tenx.ms.retail.stock.rest.dto.Stock;
 import org.apache.commons.io.FileUtils;
 import org.flywaydb.test.annotation.FlywayTest;
 import org.flywaydb.test.junit.FlywayTestExecutionListener;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +65,24 @@ public class TestStockController extends AbstractIntegrationTest {
     @Value("classpath:assets/new_store.json")
     private File newStoreRequest;
 
+    private Integer storeId;
+    private Integer productId;
+
+    @Before
+    public void setUp() throws IOException {
+        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
+        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
+        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
+        storeId = (Integer)responseStoreId.getId();
+        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
+            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
+        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
+        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
+        productId = (Integer)responseProductId.getId();
+    }
+
     @Test
+    @FlywayTest
     public void updateStockNotFound() throws IOException {
         ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + "99/99", FileUtils.readFileToString(newStockRequest), HttpMethod.POST);
         assertEquals("Store or product not found", HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -73,42 +91,28 @@ public class TestStockController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void createAndGetStockOk() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
-            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
-        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
-        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId + "/" + productId,
             FileUtils.readFileToString(newStockRequest), HttpMethod.POST);
         assertEquals("Stock created", HttpStatus.OK, response.getStatusCode());
 
-        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId + "/" + productId,
             null, HttpMethod.GET);
         assertEquals("Stock get OK", HttpStatus.OK, responseGet.getStatusCode());
         Stock responseGetBody = mapper.readValue(responseGet.getBody(), Stock.class);
         assertEquals("Stock get OK correct count", responseGetBody.getCount(), Long.valueOf(50));
+        assertEquals("Stock get OK correct product id", responseGetBody.getProductId().intValue(), productId.intValue());
+        assertEquals("Stock get OK correct store id", responseGetBody.getStoreId().intValue(), storeId.intValue());
     }
 
     @Test
     @FlywayTest
     public void getEmptyStockOk() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
-            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
-        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
-        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId + "/" + productId,
             null, HttpMethod.GET);
         assertEquals("Stock get OK", HttpStatus.OK, responseGet.getStatusCode());
         Stock responseGetBody = mapper.readValue(responseGet.getBody(), Stock.class);
+        assertEquals("Stock get OK correct product id", responseGetBody.getProductId().intValue(), productId.intValue());
+        assertEquals("Stock get OK correct store id", responseGetBody.getStoreId().intValue(), storeId.intValue());
         assertEquals("Stock get OK correct count", responseGetBody.getCount(), Long.valueOf(0));
     }
 
@@ -123,11 +127,7 @@ public class TestStockController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void getStockProductNotFound() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/9" ,
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId + "/9" ,
             null, HttpMethod.GET);
         assertEquals("Stock get product not found", HttpStatus.NOT_FOUND, responseGet.getStatusCode());
     }
@@ -135,16 +135,7 @@ public class TestStockController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void getStockProductWrongStoreNotFound() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
-            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
-        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
-        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + "9/" + responseProductId.getId(),
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + "9/" + productId,
             null, HttpMethod.GET);
         assertEquals("Stock get wrong store", HttpStatus.NOT_FOUND, responseGet.getStatusCode());
     }
@@ -152,11 +143,7 @@ public class TestStockController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void createStockProductNotFound() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/5",
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId + "/5",
             FileUtils.readFileToString(newStockRequest), HttpMethod.POST);
         assertEquals("Stock not created, product not found", HttpStatus.NOT_FOUND, response.getStatusCode());
     }
@@ -164,16 +151,7 @@ public class TestStockController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void createStockCountNull() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
-            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
-        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
-        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId + "/" + productId,
             FileUtils.readFileToString(newStockCountNullRequest), HttpMethod.POST);
         assertEquals("Stock not created, stock count null", HttpStatus.PRECONDITION_FAILED, response.getStatusCode());
     }
@@ -181,30 +159,21 @@ public class TestStockController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void createAndUpdateStockOk() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
-            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
-        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
-        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId + "/" + productId,
             FileUtils.readFileToString(newStockRequest), HttpMethod.POST);
         assertEquals("Stock created", HttpStatus.OK, response.getStatusCode());
 
-        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId + "/" + productId,
             null, HttpMethod.GET);
         assertEquals("Stock get OK", HttpStatus.OK, responseGet.getStatusCode());
         Stock responseGetBody = mapper.readValue(responseGet.getBody(), Stock.class);
         assertEquals("Stock get OK correct count", responseGetBody.getCount(), Long.valueOf(50));
 
-        ResponseEntity<String> responseUpdate = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseUpdate = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId + "/" + productId,
             FileUtils.readFileToString(updateStockRequest), HttpMethod.POST);
         assertEquals("Stock created", HttpStatus.OK, responseUpdate.getStatusCode());
 
-        ResponseEntity<String> responseGetUpdate = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> responseGetUpdate = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId + "/" + productId,
             null, HttpMethod.GET);
         assertEquals("Stock get after update OK", HttpStatus.OK, responseGetUpdate.getStatusCode());
         Stock responseGetUpdateBody = mapper.readValue(responseGetUpdate.getBody(), Stock.class);
@@ -214,16 +183,7 @@ public class TestStockController extends AbstractIntegrationTest {
     @Test
     @FlywayTest
     public void createStockInvalidCount() throws IOException {
-        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
-        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
-        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
-            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
-        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
-        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
-
-        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId + "/" + productId,
             "{\"count\": \"FIFTY\"}", HttpMethod.POST);
         assertEquals("Stock not created bad request", HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
