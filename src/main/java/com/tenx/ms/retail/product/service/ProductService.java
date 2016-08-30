@@ -9,7 +9,6 @@ import com.tenx.ms.retail.store.repository.StoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.validation.ValidationException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -48,16 +47,25 @@ public class ProductService {
             throw new NoSuchElementException();
         }
 
-        ProductEntity productExists = productRepository.findBySkuAndStore(product.getSku(), store);
-        if (productExists != null) {
-            throw new ValidationException("Already exists in store");
-        } else {
-            ProductEntity newEntity = productConverter.apiModelToRepository(store, product);
-            if (newEntity != null) {
-                newEntity = productRepository.save(newEntity);
-            }
-            return productConverter.repositoryToApiModel(newEntity);
+        ProductEntity newEntity = productConverter.apiModelToRepository(store, product);
+        if (newEntity != null) {
+            newEntity = productRepository.save(newEntity);
         }
+        return productConverter.repositoryToApiModel(newEntity);
+    }
+
+    public Product updateProductInStore(Long storeId, Long productId, Product product) {
+        ProductEntity productEntity = productRepository.findOne(productId);
+        if (productEntity == null || !storeId.equals(productEntity.getStore().getId())) {
+            throw new NoSuchElementException();
+        }
+
+        productEntity.setSku(product.getSku());
+        productEntity.setName(product.getName());
+        productEntity.setDescription(product.getDescription());
+        productEntity.setPrice(product.getPrice());
+        productEntity = productRepository.save(productEntity);
+        return productConverter.repositoryToApiModel(productEntity);
     }
 
     public List<Product> findAllProductsByStore(Long storeId) {

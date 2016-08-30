@@ -12,6 +12,7 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -91,6 +92,22 @@ public class ProductController {
         return new ResourceCreated<>(newProduct.getProductId());
     }
 
+    @ApiOperation(value = "Updates a product from a store given an id")
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Product successfully updated"),
+        @ApiResponse(code = 400, message = "Invalid parameters"),
+        @ApiResponse(code = 404, message = "Store couldn't be found"),
+        @ApiResponse(code = 412, message = "Validation failure"),
+        @ApiResponse(code = 500, message = "Internal server error")}
+    )
+    @RequestMapping(value = {"/{storeId:\\d+}/{productId:\\d+}"}, method = RequestMethod.PUT)
+    public Product updateProduct(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
+                            @ApiParam(name = "productId", value = "Product id") @PathVariable() Long productId,
+                            @ApiParam(name = "product", value = "Product data", required = true) @RequestBody Product product) {
+        return productService.updateProductInStore(storeId, productId, product);
+
+    }
+
     @ApiOperation(value = "Deletes a product from a store given an id")
     @ApiResponses(value = {
         @ApiResponse(code = 204, message = "Product successfully deleted"),
@@ -99,7 +116,7 @@ public class ProductController {
     )
     @RequestMapping(value = {"/{storeId:\\d+}/{productId:\\d+}"}, method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteStore(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
+    public void deleteProduct(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
                             @ApiParam(name = "productId", value = "Product id") @PathVariable() Long productId) {
         if(!productService.existsInStore(productId, storeId)) {
             throw new NoSuchElementException();
@@ -119,6 +136,13 @@ public class ProductController {
     @ExceptionHandler(DataIntegrityViolationException.class)
     protected void handleDataIntegrityViolationException(DataIntegrityViolationException ex,
                                                          HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.sendError(HttpStatus.PRECONDITION_FAILED.value(), ex.getMessage());
+    }
+
+    @ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)
+    @ExceptionHandler(TransactionSystemException.class)
+    protected void handleTransactionSystemException(TransactionSystemException ex,
+                                                    HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.sendError(HttpStatus.PRECONDITION_FAILED.value(), ex.getMessage());
     }
 }

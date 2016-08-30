@@ -28,8 +28,10 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -138,6 +140,24 @@ public class TestStoreController extends AbstractIntegrationTest {
         Store store = mapper.readValue(responseGet.getBody(), Store.class);
         assertEquals("Store by id, correct id", Long.valueOf(1), store.getStoreId());
         assertEquals("Store by id, correct name", "Adidas", store.getName());
+    }
+
+    @Test
+    @FlywayTest
+    public void createStoreDuplicated() throws IOException {
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
+        assertEquals("Store created status", HttpStatus.CREATED, response.getStatusCode());
+        ResourceCreated responseId = mapper.readValue(response.getBody(), ResourceCreated.class);
+        assertTrue("Store created response", (int)responseId.getId() > 0);
+
+        ResponseEntity<String> responseDuplicated = getJSONResponse(template, String.format(REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
+        assertEquals("Store not created status", HttpStatus.PRECONDITION_FAILED, responseDuplicated.getStatusCode());
+
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()), null, HttpMethod.GET);
+        assertEquals("Get all stores ok", HttpStatus.OK, responseGet.getStatusCode());
+        List<Store> stores = mapper.readValue(responseGet.getBody(), List.class);
+        assertNotNull("Get all stores not null", stores);
+        assertEquals("Get all stores correct size", stores.size(), 1);
     }
 
     @Test
