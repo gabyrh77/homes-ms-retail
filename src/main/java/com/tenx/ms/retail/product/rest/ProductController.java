@@ -70,8 +70,8 @@ public class ProductController {
         @ApiResponse(code = 500, message = "Internal server error")}
     )
     @RequestMapping(value = {"/{storeId:\\d+}"}, params={"name"}, method = RequestMethod.GET)
-    public Product findProductInStoreByName(@ApiParam(name = "storeId", value = "The store id") @PathVariable() Long storeId,
-                                            @ApiParam(name = "productId", value = "Product id", required = true) @RequestParam String name) {
+    public Product findProductInStoreByName(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
+                                            @ApiParam(name = "productName", value = "Product name", required = true) @RequestParam String name) {
         return productService.findProductByNameAndStore(name, storeId);
     }
 
@@ -85,7 +85,7 @@ public class ProductController {
     })
     @RequestMapping(value = {"/{storeId:\\d+}"}, method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public ResourceCreated<Long> createStore(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
+    public ResourceCreated<Long> createProduct(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
                                              @ApiParam(name = "product", value = "Product data", required = true) @RequestBody Product product){
         Product newProduct = productService.createInStore(product, storeId);
         return new ResourceCreated<>(newProduct.getProductId());

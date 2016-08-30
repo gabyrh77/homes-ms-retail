@@ -12,6 +12,7 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -119,6 +120,13 @@ public class StoreController {
     @ExceptionHandler(DataIntegrityViolationException.class)
     protected void handleDataIntegrityViolationException(DataIntegrityViolationException ex,
                                                       HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.sendError(HttpStatus.PRECONDITION_FAILED.value(), ex.getMessage());
+    }
+
+    @ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)
+    @ExceptionHandler(TransactionSystemException.class)
+    protected void handleTransactionSystemException(TransactionSystemException ex,
+                                                    HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.sendError(HttpStatus.PRECONDITION_FAILED.value(), ex.getMessage());
     }
 }

@@ -28,6 +28,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -84,6 +85,12 @@ public class TestStoreController extends AbstractIntegrationTest {
     }
 
     @Test
+    public void updateStoreByIdEmptyObject() throws IOException {
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + "9999", "{}", HttpMethod.PUT);
+        assertEquals("Update store not found", HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
     public void updateStoreByIdNotFound() throws IOException {
         ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + "9999", FileUtils.readFileToString(newStoreRequest), HttpMethod.PUT);
         assertEquals("Update store not found", HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -113,14 +120,49 @@ public class TestStoreController extends AbstractIntegrationTest {
         assertEquals("Create store validation name empty", HttpStatus.PRECONDITION_FAILED, response.getStatusCode());
     }
 
+    @Test
+    public void createStoreNameMaxCharacters() throws IOException {
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()), "{\"name\": \"Really long name to break the max characters limit of the database\"}", HttpMethod.POST);
+        assertEquals("Create store validation name too long", HttpStatus.PRECONDITION_FAILED, response.getStatusCode());
+    }
 
     @Test
     @FlywayTest
-    public void createStoreOK() throws IOException {
+    public void createAndGetStoreOK() throws IOException {
         ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
         assertEquals("Store created status", HttpStatus.CREATED, response.getStatusCode());
         ResourceCreated responseId = mapper.readValue(response.getBody(), ResourceCreated.class);
         assertTrue("Store created response", (int)responseId.getId() > 0);
+
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseId.getId(), null, HttpMethod.GET);
+        assertEquals("Get a store by id OK", HttpStatus.OK, responseGet.getStatusCode());
+        Store store = mapper.readValue(responseGet.getBody(), Store.class);
+        assertEquals("Store by id, correct id", Long.valueOf(1), store.getStoreId());
+        assertEquals("Store by id, correct name", "Adidas", store.getName());
+    }
+
+    @Test
+    @FlywayTest
+    public void updateStoreNameNull() throws IOException {
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
+        assertEquals("Store created status", HttpStatus.CREATED, response.getStatusCode());
+        ResourceCreated responseId = mapper.readValue(response.getBody(), ResourceCreated.class);
+        assertTrue("Store created response", (int)responseId.getId() > 0);
+
+        ResponseEntity<String> responseUpdate = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseId.getId(), FileUtils.readFileToString(newStoreNullNameRequest), HttpMethod.PUT);
+        assertEquals("Update store validation name null", HttpStatus.PRECONDITION_FAILED, responseUpdate.getStatusCode());
+    }
+
+    @Test
+    @FlywayTest
+    public void updateStoreNameEmpty() throws IOException {
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
+        assertEquals("Store created status", HttpStatus.CREATED, response.getStatusCode());
+        ResourceCreated responseId = mapper.readValue(response.getBody(), ResourceCreated.class);
+        assertTrue("Store created response", (int)responseId.getId() > 0);
+
+        ResponseEntity<String> responseUpdate = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseId.getId(), FileUtils.readFileToString(newStoreEmptyNameRequest), HttpMethod.PUT);
+        assertEquals("Update store validation name empty", HttpStatus.PRECONDITION_FAILED, responseUpdate.getStatusCode());
     }
 
     @Test

@@ -210,4 +210,21 @@ public class TestStockController extends AbstractIntegrationTest {
         Stock responseGetUpdateBody = mapper.readValue(responseGetUpdate.getBody(), Stock.class);
         assertEquals("Stock get OK correct count", responseGetUpdateBody.getCount(), Long.valueOf(10));
     }
+
+    @Test
+    @FlywayTest
+    public void createStockInvalidCount() throws IOException {
+        ResponseEntity<String> responseStore = getJSONResponse(template, String.format(TestStoreController.REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
+        assertEquals("Store created", HttpStatus.CREATED, responseStore.getStatusCode());
+        ResourceCreated responseStoreId = mapper.readValue(responseStore.getBody(), ResourceCreated.class);
+
+        ResponseEntity<String> responseProduct = getJSONResponse(template, String.format(TestProductController.REQUEST_URI, basePath()) + responseStoreId.getId(),
+            FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
+        assertEquals("Product created", HttpStatus.CREATED, responseProduct.getStatusCode());
+        ResourceCreated responseProductId = mapper.readValue(responseProduct.getBody(), ResourceCreated.class);
+
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(),
+            "{\"count\": \"FIFTY\"}", HttpMethod.POST);
+        assertEquals("Stock not created bad request", HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
 }

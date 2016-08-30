@@ -47,7 +47,6 @@ public class StockController {
         @ApiResponse(code = 500, message = "Internal server error")}
     )
     @RequestMapping(value = {"/{storeId:\\d+}/{productId:\\d+}"}, method = RequestMethod.POST)
-    @ResponseStatus(HttpStatus.OK)
     public void updateStock(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
                             @ApiParam(name = "productId", value = "Product id") @PathVariable() Long productId,
                             @ApiParam(name = "stock", value = "Stock data", required = true) @RequestBody Stock stock) {

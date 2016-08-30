@@ -101,7 +101,7 @@ public class ClientController {
     )
     @RequestMapping(value = {"/{clientId:\\d+}"}, method = RequestMethod.DELETE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteStore(@ApiParam(name = "clientId", value = "Client id") @PathVariable() Long clientId) {
+    public void deleteCliet(@ApiParam(name = "clientId", value = "Client id") @PathVariable() Long clientId) {
         if(!clientService.exists(clientId)) {
             throw  new NoSuchElementException();
         } else {
