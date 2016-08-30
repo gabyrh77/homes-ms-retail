@@ -56,15 +56,15 @@ public class OrderService {
             throw new ConstraintViolationException("Empty order details", null);
         }
 
-        ClientEntity client = clientRepository.findByEmail(order.getEmail());
-        if (client != null) {
-            client.setPhone(order.getPhone());
-            client.setFirstName(order.getFirstName());
-            client.setLastName(order.getLastName());
+        ClientEntity client;
+        if (order.getClientId() == null) {
+            throw new ConstraintViolationException("Order must have a clientId", null);
         } else {
-            client = new ClientEntity(order.getEmail(), order.getFirstName(), order.getLastName(), order.getPhone());
+            client = clientRepository.findOne(order.getClientId());
+            if (client == null) {
+                throw new NoSuchElementException("Client not found");
+            }
         }
-        client = clientRepository.save(client);
 
         OrderEntity newOrder = new OrderEntity(store, client);
         newOrder = orderRepository.save(newOrder);

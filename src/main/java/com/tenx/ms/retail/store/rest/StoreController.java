@@ -73,7 +73,7 @@ public class StoreController {
     })
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public ResourceCreated<Long> createStore(@ApiParam(name = "store", value = "Store data") @RequestBody Store store){
+    public ResourceCreated<Long> createStore(@ApiParam(name = "store", value = "Store data", required = true) @RequestBody Store store){
         Store newStore = storeService.insertStore(store);
         return new ResourceCreated<Long>(newStore.getStoreId());
     }
@@ -88,7 +88,7 @@ public class StoreController {
     )
     @RequestMapping(value = {"/{storeId:\\d+}"}, method = RequestMethod.PUT)
     public Store updateStore(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
-                             @ApiParam(name = "store", value = "Store data") @RequestBody Store store) {
+                             @ApiParam(name = "store", value = "Store data", required = true) @RequestBody Store store) {
         return storeService.updateStore(storeId, store);
     }
 

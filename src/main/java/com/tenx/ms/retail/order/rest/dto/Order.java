@@ -1,6 +1,7 @@
 package com.tenx.ms.retail.order.rest.dto;
 
 import com.tenx.ms.commons.validation.constraints.EnumValid;
+import com.tenx.ms.retail.client.rest.dto.Client;
 import com.tenx.ms.retail.order.util.OrderStatusEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -17,10 +18,16 @@ import java.util.List;
 public class Order {
 
     @ApiModelProperty(value = "Order Id", readOnly = true)
+    @NotNull
     private Long orderId;
 
     @ApiModelProperty(value = "Store Id", readOnly = true)
+    @NotNull
     private Long storeId;
+
+    @ApiModelProperty(value = "Client Id", required = true)
+    @NotNull
+    private Long clientId;
 
     @ApiModelProperty(value = "Created date", readOnly = true)
     private Date createdDate;
@@ -29,25 +36,13 @@ public class Order {
     @EnumValid(enumClass = OrderStatusEnum.class)
     private String status;
 
+    @ApiModelProperty(value = "Client's info", readOnly = true)
+    @NotNull
+    private Client client;
+
     @ApiModelProperty(value = "Ordered products", required = true)
     @NotNull
     private List<OrderDetail> products;
-
-    @ApiModelProperty(value = "Client first name", required = true)
-    @NotNull
-    private String firstName;
-
-    @ApiModelProperty(value = "Client last name", required = true)
-    @NotNull
-    private String lastName;
-
-    @ApiModelProperty(value = "Client email", required = true)
-    @NotNull
-    private String email;
-
-    @ApiModelProperty(value = "Client phone", required = true)
-    @NotNull
-    private String phone;
 
     @ApiModelProperty(value = "Backordered products", readOnly = true)
     private List<OrderDetail> backorder;
@@ -57,9 +52,11 @@ public class Order {
 
     public Order() {}
 
-    public Order(Long orderId, Long storeId, Date createdDate, String status) {
+    public Order(Long orderId, Long storeId, Client client, Date createdDate, String status) {
         this.orderId = orderId;
         this.storeId = storeId;
+        this.clientId = client.getClientId();
+        this.client = client;
         this.createdDate = createdDate;
         this.status = status;
         products = new ArrayList<>();
@@ -69,6 +66,10 @@ public class Order {
 
     public Long getStoreId() {
         return storeId;
+    }
+
+    public Long getClientId() {
+        return clientId;
     }
 
     public Long getOrderId() {
@@ -99,36 +100,12 @@ public class Order {
         this.products = products;
     }
 
-    public String getFirstName() {
-        return firstName;
+    public Client getClient() {
+        return client;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setClient(Client client) {
+        this.client = client;
     }
 
     public List<OrderDetail> getBackorder() {

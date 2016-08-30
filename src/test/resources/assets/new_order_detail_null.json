@@ -1,7 +1,4 @@
 {
-    "first_name": "Guy",
-    "last_name": "Roger",
-    "email": "client@domian.co",
-    "phone": "5512345678",
+    "client_id": 1,
     "products": null
 }

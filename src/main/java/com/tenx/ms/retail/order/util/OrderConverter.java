@@ -1,7 +1,9 @@
 package com.tenx.ms.retail.order.util;
 
+import com.tenx.ms.retail.client.util.ClientConverter;
 import com.tenx.ms.retail.order.domain.OrderEntity;
 import com.tenx.ms.retail.order.rest.dto.Order;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -9,14 +11,12 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class OrderConverter {
+    @Autowired
+    private ClientConverter clientConverter;
+
     public Order repositoryToApiModel(OrderEntity entity) {
         if (entity != null) {
-            Order result = new Order(entity.getId(), entity.getStore().getId(), entity.getCreatedDate(), entity.getStatus());
-            result.setFirstName(entity.getClient().getFirstName());
-            result.setEmail(entity.getClient().getEmail());
-            result.setLastName(entity.getClient().getLastName());
-            result.setPhone(entity.getClient().getPhone());
-            return result;
+            return new Order(entity.getId(), entity.getStore().getId(), clientConverter.repositoryToApiModel(entity.getClient()), entity.getCreatedDate(), entity.getStatus());
         }
         return null;
     }

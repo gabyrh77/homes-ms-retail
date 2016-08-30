@@ -64,31 +64,31 @@ public class ClientController {
         return clientService.findAllClients();
     }
 
-    @ApiOperation(value = "Creates a new store")
+    @ApiOperation(value = "Creates a new client")
     @ApiResponses( value = {
-        @ApiResponse(code = 201, message = "Store successfully created"),
+        @ApiResponse(code = 201, message = "Client successfully created"),
         @ApiResponse(code = 400, message = "Invalid parameters"),
         @ApiResponse(code = 412, message = "Validation failure"),
         @ApiResponse(code = 500, message = "Internal server error")
     })
     @RequestMapping(method = RequestMethod.POST)
     @ResponseStatus(HttpStatus.CREATED)
-    public ResourceCreated<Long> createClient(@ApiParam(name = "client", value = "Client data") @RequestBody Client client){
+    public ResourceCreated<Long> createClient(@ApiParam(name = "client", value = "Client data", required = true) @RequestBody Client client){
         Client newClient = clientService.insertClient(client);
         return new ResourceCreated<Long>(newClient.getClientId());
     }
 
     @ApiOperation(value = "Updates a client given an id")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Store successfully updated"),
+        @ApiResponse(code = 200, message = "Client successfully updated"),
         @ApiResponse(code = 400, message = "Invalid parameters"),
-        @ApiResponse(code = 404, message = "Store can't be found by id"),
+        @ApiResponse(code = 404, message = "Client can't be found by id"),
         @ApiResponse(code = 412, message = "Validation failure"),
         @ApiResponse(code = 500, message = "Internal server error")}
     )
     @RequestMapping(value = {"/{clientId:\\d+}"}, method = RequestMethod.PUT)
     public Client updateClient(@ApiParam(name = "clientId", value = "Client id") @PathVariable() Long clientId,
-                             @ApiParam(name = "client", value = "Client data") @RequestBody Client client) {
+                             @ApiParam(name = "client", value = "Client data", required = true) @RequestBody Client client) {
 
         return clientService.updateClient(clientId, client);
     }
