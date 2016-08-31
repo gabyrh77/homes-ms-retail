@@ -1,0 +1,34 @@
+# ATTENTION DEVELOPER:
+#
+# When this service is ready to be built and deployed along with the other microservices, the following must occur
+#
+# 1. Rename this file to "retail.yml"
+# 2. Move the file to the ssp-configuration-repo git repo under the "develop" branch
+# 3. Commit and Push the ssp-configuration-repo, startup this service to confirm it obtains its config
+# 4. Remove this comment block
+#
+
+management.security.enabled: false
+security.basic.enabled: false
+
+server:
+  port: 9020
+  contextPath: /retail
+
+
+---
+spring:
+    profiles: dev
+    cloud:
+        discovery:
+            enabled: false
+    jpa:
+        show-sql: true
+        hibernate:
+            ddl-auto: validate
+#    datasource:
+#        url: jdbc:mysql://127.0.0.1:3306/retail_db?tinyInt1isBit=false&userSSL=false
+#        username: root
+#        password: 12345678
+#        driver-class-name: com.mysql.jdbc.Driver
+

@@ -1,0 +1,38 @@
+---
+id: /ssp/services/retail
+cpus: 0.2
+mem: 600.0
+instances: 1
+constraints:
+- - hostname
+  - UNIQUE
+container:
+  type: DOCKER
+  docker:
+    image: index.dev.prod.auction.local:5000/homes-ms-retail:${TAG}
+    network: BRIDGE
+    forcePullImage: true
+    parameters:
+    - key: env
+      value: SPRING_PROFILES_ACTIVE=${PROFILE}
+    portMappings:
+    - containerPort: 9020
+      hostPort: 0
+      servicePort: 0
+      protocol: tcp
+uris:
+- file:///etc/docker.tar.gz
+env:
+  TAGS: auction,service,homes-ms-retail
+  DEPLOYED_VERSION: '${TAG}'
+labels:
+  group: services
+healthChecks:
+- path: /info
+  portIndex: 0
+  protocol: HTTP
+  gracePeriodSeconds: 300
+  intervalSeconds: 60
+  timeoutSeconds: 20
+  maxConsecutiveFailures: 3
+  ignoreHttp1xx: false
