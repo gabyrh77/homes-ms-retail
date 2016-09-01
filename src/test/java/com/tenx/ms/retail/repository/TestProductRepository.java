@@ -1,18 +1,18 @@
 package com.tenx.ms.retail.repository;
 
 import com.tenx.ms.commons.config.Profiles;
+import com.tenx.ms.commons.tests.AbstractIntegrationTest;
 import com.tenx.ms.retail.RetailServiceApp;
 import com.tenx.ms.retail.product.domain.ProductEntity;
 import com.tenx.ms.retail.product.repository.ProductRepository;
 import com.tenx.ms.retail.store.domain.StoreEntity;
 import com.tenx.ms.retail.store.repository.StoreRepository;
+import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.ConstraintViolationException;
@@ -26,11 +26,11 @@ import static org.junit.Assert.assertNull;
 /**
  * Created by goropeza on 28/08/16.
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+
 @SpringApplicationConfiguration(classes = RetailServiceApp.class)
 @ActiveProfiles(Profiles.TEST_NOAUTH)
 @Transactional
-public class TestProductRepository {
+public class TestProductRepository extends AbstractIntegrationTest {
 
     @Autowired
     private StoreRepository storeRepository;
@@ -39,6 +39,7 @@ public class TestProductRepository {
     private ProductRepository productRepository;
 
     @Test
+    @FlywayTest
     public void insertAndGetProductOK() {
         StoreEntity store = new StoreEntity("Adidas");
         store = storeRepository.save(store);
@@ -50,6 +51,7 @@ public class TestProductRepository {
     }
 
     @Test
+    @FlywayTest
     public void saveProductFailStoreNull() {
         ProductEntity product = new ProductEntity("123bc", "Shoes", "Beautiful shoes", BigDecimal.valueOf(50.00), null);
         try {
@@ -61,6 +63,7 @@ public class TestProductRepository {
     }
 
     @Test
+    @FlywayTest
     public void saveProductFailSkuNull() {
         StoreEntity store = new StoreEntity("Adidas");
         store = storeRepository.save(store);
@@ -87,6 +90,7 @@ public class TestProductRepository {
     }
 
     @Test
+    @FlywayTest
     public void saveProductFailSkuSpecialCharacters() {
         StoreEntity store = new StoreEntity("Adidas");
         store = storeRepository.save(store);
@@ -100,6 +104,7 @@ public class TestProductRepository {
     }
 
     @Test
+    @FlywayTest
     public void saveProductFailSkuShort() {
         StoreEntity store = new StoreEntity("Adidas");
         store = storeRepository.save(store);
@@ -113,6 +118,7 @@ public class TestProductRepository {
     }
 
     @Test
+    @FlywayTest
     public void deleteProductOK() {
         StoreEntity store = new StoreEntity("Adidas");
         store = storeRepository.save(store);

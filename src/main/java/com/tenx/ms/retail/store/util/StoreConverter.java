@@ -2,14 +2,14 @@ package com.tenx.ms.retail.store.util;
 
 import com.tenx.ms.retail.store.domain.StoreEntity;
 import com.tenx.ms.retail.store.rest.dto.Store;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
 
 /**
  * Created by goropeza on 25/08/16.
  */
-@Service
+@Component
 public class StoreConverter {
 
     public Store repositoryToApiModel(StoreEntity storeEntity) {

@@ -1,6 +1,6 @@
 package com.tenx.ms.retail.order.domain;
 
-import com.tenx.ms.retail.order.util.OrderDetailStatusEnum;
+import com.tenx.ms.retail.order.domain.enums.OrderDetailStatusEnum;
 import com.tenx.ms.retail.product.domain.ProductEntity;
 
 import javax.persistence.Entity;
@@ -20,12 +20,27 @@ import javax.persistence.GenerationType;
  */
 @Entity
 @Table(name = "order_detail", uniqueConstraints = @UniqueConstraint(name = "unique_order_product_status",
-    columnNames = {"detail_order_id", "detail_product_id", "detail_status"}))
+    columnNames = {"order_id", "product_id", "status"}))
 public class OrderDetailEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "order_id", nullable = false)
     private OrderEntity order;
+
+    @ManyToOne
+    @JoinColumn(name = "product_id", nullable = false)
     private ProductEntity product;
+
+    @Enumerated(EnumType.ORDINAL)
+    @Column(name = "status", nullable = false)
     private OrderDetailStatusEnum status;
+
+    @Column(name = "product_count", nullable = false)
     private Long count;
 
     public OrderDetailEntity() {}
@@ -37,9 +52,6 @@ public class OrderDetailEntity {
         this.count = count;
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "detail_id")
     public Long getId() {
         return id;
     }
@@ -48,8 +60,6 @@ public class OrderDetailEntity {
         this.id = id;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "detail_order_id", nullable = false)
     public OrderEntity getOrder() {
         return order;
     }
@@ -58,8 +68,6 @@ public class OrderDetailEntity {
         this.order = order;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "detail_product_id", nullable = false)
     public ProductEntity getProduct() {
         return product;
     }
@@ -68,8 +76,6 @@ public class OrderDetailEntity {
         this.product = product;
     }
 
-    @Enumerated(EnumType.ORDINAL)
-    @Column(name = "detail_status", nullable = false)
     public OrderDetailStatusEnum getStatus() {
         return status;
     }
@@ -78,7 +84,6 @@ public class OrderDetailEntity {
         this.status = status;
     }
 
-    @Column(name = "detail_product_count", nullable = false)
     public Long getCount() {
         return count;
     }

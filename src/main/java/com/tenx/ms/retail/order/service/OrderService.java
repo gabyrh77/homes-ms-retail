@@ -9,7 +9,7 @@ import com.tenx.ms.retail.order.repository.OrderRepository;
 import com.tenx.ms.retail.order.rest.dto.Order;
 import com.tenx.ms.retail.order.rest.dto.OrderDetail;
 import com.tenx.ms.retail.order.util.OrderConverter;
-import com.tenx.ms.retail.order.util.OrderDetailStatusEnum;
+import com.tenx.ms.retail.order.domain.enums.OrderDetailStatusEnum;
 import com.tenx.ms.retail.product.domain.ProductEntity;
 import com.tenx.ms.retail.product.repository.ProductRepository;
 import com.tenx.ms.retail.stock.domain.StockEntity;
@@ -45,7 +45,7 @@ public class OrderService {
     @Autowired
     private ProductRepository productRepository;
 
-    @SuppressWarnings("PMD")
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     public Order createOrder(Long storeId, Order order) {
         ClientEntity client;
         StoreEntity store;
@@ -80,7 +80,7 @@ public class OrderService {
 
         for(OrderDetail detail: details) {
             long productId = detail != null && detail.getProductId() != null ? detail.getProductId() : 0;
-            Optional<ProductEntity> resultProduct = productRepository.findById(productId);
+            Optional<ProductEntity> resultProduct = productId > 0 ? productRepository.findById(productId) : Optional.<ProductEntity>empty();
             if (!resultProduct.isPresent() || !resultProduct.get().getStore().getId().equals(storeId) || detail == null ||
                 detail.getCount() == null  || detail.getCount() <= 0) {
                 resultOrder.getErrors().add(detail);

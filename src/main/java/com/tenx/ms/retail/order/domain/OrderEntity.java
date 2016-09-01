@@ -2,7 +2,7 @@ package com.tenx.ms.retail.order.domain;
 
 import com.tenx.ms.retail.client.domain.ClientEntity;
 import com.tenx.ms.retail.order.util.OrderStatusConverter;
-import com.tenx.ms.retail.order.util.OrderStatusEnum;
+import com.tenx.ms.retail.order.domain.enums.OrderStatusEnum;
 import com.tenx.ms.retail.store.domain.StoreEntity;
 
 import javax.persistence.Entity;
@@ -14,7 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * Created by goropeza on 28/08/16.
@@ -22,10 +22,25 @@ import java.util.Date;
 @Entity
 @Table(name = "order_table")
 public class OrderEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "store_id", nullable = false)
     private StoreEntity store;
+
+    @ManyToOne
+    @JoinColumn(name = "client_id", nullable = false)
     private ClientEntity client;
-    private Date createdDate;
+
+    @Column(name = "created_date", nullable = false)
+    private LocalDateTime createdDate;
+
+    @Column(name = "status", nullable = false)
+    @Convert(converter = OrderStatusConverter.class)
     private String status;
 
     public OrderEntity() {}
@@ -33,7 +48,7 @@ public class OrderEntity {
     public OrderEntity(StoreEntity store, ClientEntity client) {
         this.store = store;
         this.client = client;
-        this.createdDate = new Date();
+        this.createdDate = LocalDateTime.now();
         this.status = OrderStatusEnum.ORDERED.toJson();
     }
 
@@ -41,15 +56,10 @@ public class OrderEntity {
         this.id = id;
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "order_id")
     public Long getId() {
         return id;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "order_store_id", nullable = false)
     public StoreEntity getStore() {
         return store;
     }
@@ -58,8 +68,6 @@ public class OrderEntity {
         this.store = store;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "order_client_id", nullable = false)
     public ClientEntity getClient() {
         return client;
     }
@@ -68,17 +76,14 @@ public class OrderEntity {
         this.client = client;
     }
 
-    @Column(name = "order_created_date", nullable = false)
-    public Date getCreatedDate() {
+    public LocalDateTime getCreatedDate() {
         return createdDate;
     }
 
-    public void setCreatedDate(Date createdDate) {
+    public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
     }
 
-    @Column(name = "order_status", nullable = false)
-    @Convert(converter = OrderStatusConverter.class)
     public String getStatus() {
         return status;
     }

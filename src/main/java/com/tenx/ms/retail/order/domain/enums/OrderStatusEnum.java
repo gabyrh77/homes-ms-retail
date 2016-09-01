@@ -1,4 +1,4 @@
-package com.tenx.ms.retail.order.util;
+package com.tenx.ms.retail.order.domain.enums;
 
 
 import com.tenx.ms.commons.rest.BaseValueNameEnum;

@@ -1,6 +1,7 @@
 package com.tenx.ms.retail.repository;
 
 import com.tenx.ms.commons.config.Profiles;
+import com.tenx.ms.commons.tests.AbstractIntegrationTest;
 import com.tenx.ms.retail.RetailServiceApp;
 import com.tenx.ms.retail.product.domain.ProductEntity;
 import com.tenx.ms.retail.product.repository.ProductRepository;
@@ -8,13 +9,12 @@ import com.tenx.ms.retail.stock.domain.StockEntity;
 import com.tenx.ms.retail.stock.repository.StockRepository;
 import com.tenx.ms.retail.store.domain.StoreEntity;
 import com.tenx.ms.retail.store.repository.StoreRepository;
+import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -25,11 +25,11 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by goropeza on 28/08/16.
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+
 @SpringApplicationConfiguration(classes = RetailServiceApp.class)
 @ActiveProfiles(Profiles.TEST_NOAUTH)
 @Transactional
-public class TestStockRepository {
+public class TestStockRepository extends AbstractIntegrationTest {
 
     @Autowired
     private StockRepository stockRepository;
@@ -41,6 +41,7 @@ public class TestStockRepository {
     private ProductRepository productRepository;
 
     @Test
+    @FlywayTest
     public void upsertStockOK() {
         StoreEntity store = new StoreEntity("Adidas");
         store = storeRepository.save(store);
@@ -59,6 +60,7 @@ public class TestStockRepository {
     }
 
     @Test
+    @FlywayTest
     public void saveStockFail() {
         StockEntity stock = new StockEntity(null, 100L);
         try {
@@ -70,6 +72,7 @@ public class TestStockRepository {
     }
 
     @Test
+    @FlywayTest
     public void getStockByProductOK() {
         StoreEntity store = new StoreEntity("Adidas");
         store = storeRepository.save(store);

@@ -4,12 +4,12 @@ import com.tenx.ms.retail.client.util.ClientConverter;
 import com.tenx.ms.retail.order.domain.OrderEntity;
 import com.tenx.ms.retail.order.rest.dto.Order;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 /**
  * Created by goropeza on 29/08/16.
  */
-@Service
+@Component
 public class OrderConverter {
     @Autowired
     private ClientConverter clientConverter;

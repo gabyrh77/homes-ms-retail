@@ -20,10 +20,29 @@ import javax.validation.constraints.Size;
 @Table(name = "client")
 public class ClientEntity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private Long id;
+
+    @Email
+    @Size(min = 1, max = 50)
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
+
+    @Pattern(regexp="[a-zA-Z]*")
+    @Size(min = 1, max = 50)
+    @Column(name = "first_name", nullable = false)
     private String firstName;
+
+    @Pattern(regexp="[a-zA-Z]*")
+    @Size(min = 1, max = 50)
+    @Column(name = "last_name", nullable = false)
     private String lastName;
+
+    @PhoneNumber
+    @Size(min = 1, max = 10)
+    @Column(name = "phone", nullable = false)
     private String phone;
 
     public ClientEntity() {}
@@ -35,9 +54,6 @@ public class ClientEntity {
         this.phone = phone;
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "client_id")
     public Long getId() {
         return id;
     }
@@ -46,9 +62,6 @@ public class ClientEntity {
         this.id = id;
     }
 
-    @Email
-    @Size(min = 1, max = 50)
-    @Column(name = "client_email", nullable = false, unique = true)
     public String getEmail() {
         return email;
     }
@@ -57,9 +70,6 @@ public class ClientEntity {
         this.email = email;
     }
 
-    @Pattern(regexp="[a-zA-Z]*")
-    @Size(min = 1, max = 50)
-    @Column(name = "client_first_name", nullable = false)
     public String getFirstName() {
         return firstName;
     }
@@ -68,9 +78,6 @@ public class ClientEntity {
         this.firstName = firstName;
     }
 
-    @Pattern(regexp="[a-zA-Z]*")
-    @Size(min = 1, max = 50)
-    @Column(name = "client_last_name", nullable = false)
     public String getLastName() {
         return lastName;
     }
@@ -79,9 +86,6 @@ public class ClientEntity {
         this.lastName = lastName;
     }
 
-    @PhoneNumber
-    @Size(min = 1, max = 10)
-    @Column(name = "client_phone", nullable = false)
     public String getPhone() {
         return phone;
     }

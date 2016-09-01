@@ -11,18 +11,15 @@ import org.apache.commons.io.FileUtils;
 import org.flywaydb.test.annotation.FlywayTest;
 import org.flywaydb.test.junit.FlywayTestExecutionListener;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.TestRestTemplate;
-import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.web.client.RestTemplate;
 
@@ -35,8 +32,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * Created by goropeza on 26/08/16.
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@WebIntegrationTest(randomPort = true)
+
 @SpringApplicationConfiguration(classes = RetailServiceApp.class)
 @TestExecutionListeners({DependencyInjectionTestExecutionListener.class, FlywayTestExecutionListener.class})
 @ActiveProfiles(Profiles.TEST_NOAUTH)
@@ -51,13 +47,13 @@ public class TestProductController extends AbstractIntegrationTest {
 
     private final RestTemplate template = new TestRestTemplate();
 
-    @Value("classpath:assets/new_product.json")
+    @Value("classpath:rest/assets/new_product.json")
     private File newProductRequest;
 
-    @Value("classpath:assets/update_product.json")
+    @Value("classpath:rest/assets/update_product.json")
     private File updateProductRequest;
 
-    @Value("classpath:assets/new_store.json")
+    @Value("classpath:rest/assets/new_store.json")
     private File newStoreRequest;
 
     @Test

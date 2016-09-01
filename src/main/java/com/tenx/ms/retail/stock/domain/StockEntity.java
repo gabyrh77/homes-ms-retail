@@ -18,14 +18,22 @@ import javax.persistence.GenerationType;
 @Table(name = "stock")
 public class StockEntity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private Long id;
-    private ProductEntity stockProduct;
+
+    @OneToOne
+    @JoinColumn(name = "product_id", unique = true, nullable = false)
+    private ProductEntity product;
+
+    @Column(name = "product_count", nullable = false)
     private Long existence;
 
     public StockEntity() {}
 
     public StockEntity(ProductEntity stockProduct, Long existence) {
-        this.stockProduct = stockProduct;
+        this.product = stockProduct;
         this.existence = existence;
     }
 
@@ -33,24 +41,18 @@ public class StockEntity {
         this.id = id;
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "stock_id")
     public Long getId() {
         return id;
     }
 
-    @OneToOne
-    @JoinColumn(name = "stock_product_id", unique = true, nullable = false)
     public ProductEntity getProduct() {
-        return stockProduct;
+        return product;
     }
 
     public void setProduct(ProductEntity product) {
-        this.stockProduct = product;
+        this.product = product;
     }
 
-    @Column(name = "stock_count", nullable = false)
     public Long getExistence() {
         return existence;
     }
@@ -58,6 +60,5 @@ public class StockEntity {
     public void setExistence(Long existence) {
         this.existence = existence;
     }
-
 
 }

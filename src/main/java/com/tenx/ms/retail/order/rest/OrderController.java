@@ -35,7 +35,6 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-
     @ApiOperation(value = "Creates a new order")
     @ApiResponses(value = {
         @ApiResponse(code = 201, message = "Order successfully created"),

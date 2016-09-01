@@ -16,7 +16,13 @@ import javax.persistence.GenerationType;
 @Table(name = "store")
 public class StoreEntity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private Long id;
+
+    @Size(min = 1, max = 50)
+    @Column(unique = true, nullable = false, name = "name")
     private String name;
 
     public StoreEntity() {}
@@ -29,15 +35,10 @@ public class StoreEntity {
         this.id = id;
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "store_id")
     public Long getId() {
         return id;
     }
 
-    @Size(min = 1, max = 50)
-    @Column(unique = true, nullable = false, name = "store_name")
     public String getName() {
         return name;
     }

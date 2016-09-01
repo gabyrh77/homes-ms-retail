@@ -20,15 +20,32 @@ import java.math.BigDecimal;
  */
 @Entity
 @Table(name = "product",
-    uniqueConstraints = @UniqueConstraint(name = "unique_product_sku_store", columnNames = {"product_sku", "product_store_id"})
-)
+    uniqueConstraints = @UniqueConstraint(name = "unique_product_sku_store", columnNames = {"sku", "store_id"}))
 public class ProductEntity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id")
     private Long id;
+
+    @Size(min = 5, max = 10)
+    @Pattern(regexp = "[A-Za-z0-9]*")
+    @Column(name = "sku", nullable = false)
     private String sku;
+
+    @Size(min = 1, max = 50)
+    @Column(name = "name", nullable = false)
     private String name;
+
+    @Size(min = 1, max = 200)
+    @Column(name = "description", nullable = false)
     private String description;
+
+    @Column(name = "price", length = 15, precision = 2, nullable = false)
     private BigDecimal price;
+
+    @ManyToOne
+    @JoinColumn(name = "store_id", nullable = false)
     private StoreEntity store;
 
     public ProductEntity() {}
@@ -45,17 +62,10 @@ public class ProductEntity {
         this.id = id;
     }
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "product_id")
     public Long getId() {
         return id;
     }
 
-
-    @Size(min = 5, max = 10)
-    @Pattern(regexp = "[A-Za-z0-9]*")
-    @Column(name = "product_sku", nullable = false)
     public String getSku() {
         return sku;
     }
@@ -64,8 +74,6 @@ public class ProductEntity {
         this.sku = sku;
     }
 
-    @Size(min = 1, max = 50)
-    @Column(name = "product_name", nullable = false)
     public String getName() {
         return name;
     }
@@ -74,8 +82,6 @@ public class ProductEntity {
         this.name = name;
     }
 
-    @Size(min = 1, max = 200)
-    @Column(name = "product_description", nullable = false)
     public String getDescription() {
         return description;
     }
@@ -84,7 +90,6 @@ public class ProductEntity {
         this.description = description;
     }
 
-    @Column(name = "product_price", length = 15, precision = 2, nullable = false)
     public BigDecimal getPrice() {
         return price;
     }
@@ -93,8 +98,6 @@ public class ProductEntity {
         this.price = price;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "product_store_id", nullable = false)
     public StoreEntity getStore() {
         return store;
     }

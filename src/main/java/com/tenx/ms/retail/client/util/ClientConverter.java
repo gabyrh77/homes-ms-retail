@@ -2,14 +2,14 @@ package com.tenx.ms.retail.client.util;
 
 import com.tenx.ms.retail.client.domain.ClientEntity;
 import com.tenx.ms.retail.client.rest.dto.Client;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
 
 /**
  * Created by goropeza on 30/08/16.
  */
-@Service
+@Component
 public class ClientConverter {
 
     public Client repositoryToApiModel(ClientEntity entity) {

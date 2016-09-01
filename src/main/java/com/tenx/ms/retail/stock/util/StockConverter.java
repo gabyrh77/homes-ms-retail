@@ -3,14 +3,14 @@ package com.tenx.ms.retail.stock.util;
 import com.tenx.ms.retail.product.domain.ProductEntity;
 import com.tenx.ms.retail.stock.domain.StockEntity;
 import com.tenx.ms.retail.stock.rest.dto.Stock;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
 
 /**
  * Created by goropeza on 28/08/16.
  */
-@Service
+@Component
 public class StockConverter {
 
     public Stock repositoryToApiModel(StockEntity stockEntity) {

@@ -1,4 +1,4 @@
-package com.tenx.ms.retail.order.util;
+package com.tenx.ms.retail.order.domain.enums;
 
 /**
  * Created by goropeza on 28/08/16.

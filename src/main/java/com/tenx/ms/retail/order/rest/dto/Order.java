@@ -2,13 +2,13 @@ package com.tenx.ms.retail.order.rest.dto;
 
 import com.tenx.ms.commons.validation.constraints.EnumValid;
 import com.tenx.ms.retail.client.rest.dto.Client;
-import com.tenx.ms.retail.order.util.OrderStatusEnum;
+import com.tenx.ms.retail.order.domain.enums.OrderStatusEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -30,7 +30,7 @@ public class Order {
     private Long clientId;
 
     @ApiModelProperty(value = "Created date", readOnly = true)
-    private Date createdDate;
+    private LocalDateTime createdDate;
 
     @ApiModelProperty(value = "Order status", readOnly = true)
     @EnumValid(enumClass = OrderStatusEnum.class)
@@ -52,7 +52,7 @@ public class Order {
 
     public Order() {}
 
-    public Order(Long orderId, Long storeId, Client client, Date createdDate, String status) {
+    public Order(Long orderId, Long storeId, Client client, LocalDateTime createdDate, String status) {
         this.orderId = orderId;
         this.storeId = storeId;
         this.clientId = client.getClientId();
@@ -76,11 +76,11 @@ public class Order {
         return orderId;
     }
 
-    public Date getCreatedDate() {
+    public LocalDateTime getCreatedDate() {
         return createdDate;
     }
 
-    public void setCreatedDate(Date createdDate) {
+    public void setCreatedDate(LocalDateTime createdDate) {
         this.createdDate = createdDate;
     }
 
