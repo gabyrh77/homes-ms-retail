@@ -26,7 +26,7 @@ public class ClientService {
         if (result.isPresent()) {
             return clientConverter.repositoryToApiModel(result.get());
         } else {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Client not found");
         }
     }
 
@@ -36,7 +36,7 @@ public class ClientService {
 
     public void deleteClient(Long clientId) {
         if(!exists(clientId)) {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Client not found");
         } else {
             clientRepository.delete(clientId);
         }
@@ -63,7 +63,7 @@ public class ClientService {
             entity = clientRepository.save(entity);
             return clientConverter.repositoryToApiModel(entity);
         } else {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Client not found");
         }
     }
 }

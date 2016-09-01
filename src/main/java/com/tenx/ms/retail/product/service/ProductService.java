@@ -32,7 +32,7 @@ public class ProductService {
     public void deleteProduct(Long storeId, Long productId) {
         Optional<ProductEntity> result = productRepository.findById(productId);
         if (!result.isPresent() || !storeId.equals(result.get().getStore().getId())) {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Product not found");
         }
         productRepository.delete(productId);
     }
@@ -40,7 +40,7 @@ public class ProductService {
     public Product createInStore(Product product, Long storeId) {
         Optional<StoreEntity> result = storeRepository.findById(storeId);
         if (!result.isPresent()) {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Store not found");
         } else {
             ProductEntity newEntity = productConverter.apiModelToRepository(result.get(), product);
             newEntity = productRepository.save(newEntity);
@@ -51,7 +51,7 @@ public class ProductService {
     public Product updateProductInStore(Long storeId, Long productId, Product product) {
         Optional<ProductEntity> result = productRepository.findById(productId);
         if (!result.isPresent() || !storeId.equals(result.get().getStore().getId())) {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Product not found");
         } else {
             ProductEntity productEntity = result.get();
             productEntity.setSku(product.getSku());
@@ -66,7 +66,7 @@ public class ProductService {
     public List<Product> findAllProductsByStore(Long storeId) {
         Optional<StoreEntity> result = storeRepository.findById(storeId);
         if (!result.isPresent()) {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Store not found");
         }
         return productRepository.findByStore(result.get()).stream().map(productConverter.entityToProduct).collect(Collectors.toList());
     }
@@ -74,12 +74,12 @@ public class ProductService {
     public Product findProductByIdAndStore(Long productId, Long storeId) {
         Optional<StoreEntity> result = storeRepository.findById(storeId);
         if (!result.isPresent()) {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Store not found");
         }
 
         Optional<ProductEntity> resultProduct = productRepository.findByIdAndStore(productId, result.get());
         if (!resultProduct.isPresent()) {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Product not found");
         }
         return productConverter.repositoryToApiModel(resultProduct.get());
     }
@@ -87,11 +87,11 @@ public class ProductService {
     public Product findProductByNameAndStore(String name, Long storeId) {
         Optional<StoreEntity> result = storeRepository.findById(storeId);
         if (!result.isPresent()) {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Store not found");
         }
         Optional<ProductEntity> resultProduct = productRepository.findByNameAndStore(name, result.get());
         if (!resultProduct.isPresent()) {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Product not found");
         }
         return productConverter.repositoryToApiModel(resultProduct.get());
     }

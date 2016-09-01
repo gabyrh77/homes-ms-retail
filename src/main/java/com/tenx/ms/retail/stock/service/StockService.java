@@ -40,7 +40,7 @@ public class StockService {
             stockEntity = stockRepository.save(stockEntity);
             return stockConverter.repositoryToApiModel(stockEntity);
         } else {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Product not found");
         }
     }
 
@@ -54,7 +54,7 @@ public class StockService {
                 return new Stock(productId, storeId, 0L);
             }
         } else {
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("Product not found");
         }
     }
 }

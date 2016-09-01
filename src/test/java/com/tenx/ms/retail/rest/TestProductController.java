@@ -104,7 +104,7 @@ public class TestProductController extends AbstractIntegrationTest {
         assertEquals("Product created", HttpStatus.CREATED, response.getStatusCode());
         ResourceCreated responseProductId = mapper.readValue(response.getBody(), ResourceCreated.class);
 
-        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "?id=" + responseProductId.getId(), null, HttpMethod.GET);
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "?productId=" + responseProductId.getId(), null, HttpMethod.GET);
         assertEquals("Product by id OK", HttpStatus.OK, responseGet.getStatusCode());
         Product responseBody = mapper.readValue(responseGet.getBody(), Product.class);
         assertEquals("Product by id Product id", responseBody.getProductId(), Long.valueOf(1));
@@ -166,7 +166,7 @@ public class TestProductController extends AbstractIntegrationTest {
         ResponseEntity<String> responseDelete = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "/" + responseProductId.getId(), null, HttpMethod.DELETE);
         assertEquals("Delete product OK", HttpStatus.NO_CONTENT, responseDelete.getStatusCode());
 
-        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "?id=" + responseProductId.getId(), null, HttpMethod.GET);
+        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId() + "?productId=" + responseProductId.getId(), null, HttpMethod.GET);
         assertEquals("Product by id NOT FOUND", HttpStatus.NOT_FOUND, responseGet.getStatusCode());
     }
 }

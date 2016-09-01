@@ -53,26 +53,26 @@ public class ProductController {
 
     @ApiOperation(value = "Find a product in a store by product id")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Product list returned successfully"),
+        @ApiResponse(code = 200, message = "Product returned successfully"),
         @ApiResponse(code = 404, message = "Store or product couldn't be found"),
         @ApiResponse(code = 500, message = "Internal server error")}
     )
-    @RequestMapping(value = {"/{storeId:\\d+}"}, params={"id"}, method = RequestMethod.GET)
+    @RequestMapping(value = {"/{storeId:\\d+}"}, params={"productId"}, method = RequestMethod.GET)
     public Product findProductInStoreById(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
-                                          @ApiParam(name = "productId", value = "Product id", required = true) @RequestParam Long id) {
-        return productService.findProductByIdAndStore(id, storeId);
+                                          @ApiParam(name = "productId", value = "Product id", required = true) @RequestParam Long productId) {
+        return productService.findProductByIdAndStore(productId, storeId);
     }
 
     @ApiOperation(value = "Find a product in a store by product name")
     @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Product list returned successfully"),
+        @ApiResponse(code = 200, message = "Product returned successfully"),
         @ApiResponse(code = 404, message = "Store or product couldn't be found"),
         @ApiResponse(code = 500, message = "Internal server error")}
     )
-    @RequestMapping(value = {"/{storeId:\\d+}"}, params={"name"}, method = RequestMethod.GET)
+    @RequestMapping(value = {"/{storeId:\\d+}"}, params={"productName"}, method = RequestMethod.GET)
     public Product findProductInStoreByName(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
-                                            @ApiParam(name = "productName", value = "Product name", required = true) @RequestParam String name) {
-        return productService.findProductByNameAndStore(name, storeId);
+                                            @ApiParam(name = "productName", value = "Product name", required = true) @RequestParam String productName) {
+        return productService.findProductByNameAndStore(productName, storeId);
     }
 
     @ApiOperation(value = "Creates a new product in a store")
