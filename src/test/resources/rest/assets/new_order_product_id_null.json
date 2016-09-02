@@ -1,0 +1,11 @@
+{
+    "client_id": 1,
+    "products": [{
+        "product_id": 1,
+        "count": 10
+    },
+        {
+            "product_id": null,
+            "count": 10
+        }]
+}
