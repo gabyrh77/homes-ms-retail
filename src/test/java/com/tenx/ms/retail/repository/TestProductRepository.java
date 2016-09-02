@@ -11,7 +11,6 @@ import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +29,7 @@ import static org.junit.Assert.assertNull;
 @SpringApplicationConfiguration(classes = RetailServiceApp.class)
 @ActiveProfiles(Profiles.TEST_NOAUTH)
 @Transactional
+@SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class TestProductRepository extends AbstractIntegrationTest {
 
     @Autowired
@@ -56,8 +56,8 @@ public class TestProductRepository extends AbstractIntegrationTest {
         ProductEntity product = new ProductEntity("123bc", "Shoes", "Beautiful shoes", BigDecimal.valueOf(50.00), null);
         try {
             product = productRepository.save(product);
-        } catch (DataIntegrityViolationException ex) {
-            assertEquals("Data integrity violation thrown", ex.getClass(), DataIntegrityViolationException.class);
+        } catch (Exception ex) {
+            assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertNull("Product not created", product.getId());
     }
@@ -70,8 +70,8 @@ public class TestProductRepository extends AbstractIntegrationTest {
         ProductEntity product = new ProductEntity(null, "Shoes", "Beautiful shoes", BigDecimal.valueOf(50.00), store);
         try {
             product = productRepository.save(product);
-        } catch (DataIntegrityViolationException ex) {
-            assertEquals("Data integrity violation thrown", ex.getClass(), DataIntegrityViolationException.class);
+        } catch (Exception ex) {
+            assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertNull("Product not created", product.getId());
     }
@@ -83,7 +83,7 @@ public class TestProductRepository extends AbstractIntegrationTest {
         ProductEntity product = new ProductEntity("12345678abc", "Shoes", "Beautiful shoes", BigDecimal.valueOf(50.00), store);
         try {
             product = productRepository.save(product);
-        } catch (ConstraintViolationException ex) {
+        } catch (Exception ex) {
             assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertNull("Product not created", product.getId());
@@ -97,7 +97,7 @@ public class TestProductRepository extends AbstractIntegrationTest {
         ProductEntity product = new ProductEntity("123*abc", "Shoes", "Beautiful shoes", BigDecimal.valueOf(50.00), store);
         try {
             product = productRepository.save(product);
-        } catch (ConstraintViolationException ex) {
+        } catch (Exception ex) {
             assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertNull("Product not created", product.getId());
@@ -111,7 +111,7 @@ public class TestProductRepository extends AbstractIntegrationTest {
         ProductEntity product = new ProductEntity("123", "Shoes", "Beautiful shoes", BigDecimal.valueOf(50.00), store);
         try {
             product = productRepository.save(product);
-        } catch (ConstraintViolationException ex) {
+        } catch (Exception ex) {
             assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertNull("Product not created", product.getId());

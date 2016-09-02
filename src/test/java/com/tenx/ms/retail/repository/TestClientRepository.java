@@ -9,7 +9,6 @@ import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 @SpringApplicationConfiguration(classes = RetailServiceApp.class)
 @ActiveProfiles(Profiles.TEST_NOAUTH)
 @Transactional
+@SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class TestClientRepository extends AbstractIntegrationTest {
 
     @Autowired
@@ -44,8 +44,8 @@ public class TestClientRepository extends AbstractIntegrationTest {
         ClientEntity client = new ClientEntity(null, "Alex", "Robbin", "5554321110");
         try {
             client = clientRepository.save(client);
-        } catch (DataIntegrityViolationException ex) {
-            assertEquals("Data integrity violation thrown", ex.getClass(), DataIntegrityViolationException.class);
+        } catch (Exception ex) {
+            assertEquals("Data integrity violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertEquals("Client not inserted", null, client.getId());
     }
@@ -56,7 +56,7 @@ public class TestClientRepository extends AbstractIntegrationTest {
         ClientEntity client = new ClientEntity("client@domain.co", "Alex", "Robbin", "555110");
         try {
             client = clientRepository.save(client);
-        } catch (ConstraintViolationException ex) {
+        } catch (Exception ex) {
             assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertEquals("Client not inserted", null, client.getId());
@@ -68,7 +68,7 @@ public class TestClientRepository extends AbstractIntegrationTest {
         ClientEntity client = new ClientEntity("client@domain.co", "Alex", "Robbin", "abc1234567");
         try {
             client = clientRepository.save(client);
-        } catch (ConstraintViolationException ex) {
+        } catch (Exception ex) {
             assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertEquals("Client not inserted", null, client.getId());
@@ -80,7 +80,7 @@ public class TestClientRepository extends AbstractIntegrationTest {
         ClientEntity client = new ClientEntity("clientemailfake", "Alex", "Robbin", "5554321110");
         try {
             client = clientRepository.save(client);
-        } catch (ConstraintViolationException ex) {
+        } catch (Exception ex) {
             assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertEquals("Client not inserted", null, client.getId());
@@ -92,7 +92,7 @@ public class TestClientRepository extends AbstractIntegrationTest {
         ClientEntity client = new ClientEntity("client@domain.co", "Alex1", "Robbin", "555110");
         try {
             client = clientRepository.save(client);
-        } catch (ConstraintViolationException ex) {
+        } catch (Exception ex) {
             assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertEquals("Client not inserted", null, client.getId());
@@ -104,7 +104,7 @@ public class TestClientRepository extends AbstractIntegrationTest {
         ClientEntity client = new ClientEntity("client@domain.co", "Alex", "Robb3n", "5554321110");
         try {
             client = clientRepository.save(client);
-        } catch (ConstraintViolationException ex) {
+        } catch (Exception ex) {
             assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertEquals("Client not inserted", null, client.getId());

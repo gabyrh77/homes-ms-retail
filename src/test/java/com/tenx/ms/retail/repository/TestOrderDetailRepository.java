@@ -22,6 +22,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.ConstraintViolationException;
 import java.math.BigDecimal;
 
 import static org.junit.Assert.assertEquals;
@@ -33,6 +34,7 @@ import static org.junit.Assert.assertTrue;
 @SpringApplicationConfiguration(classes = RetailServiceApp.class)
 @ActiveProfiles(Profiles.TEST_NOAUTH)
 @Transactional
+@SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class TestOrderDetailRepository extends AbstractIntegrationTest {
 
     @Autowired
@@ -92,7 +94,7 @@ public class TestOrderDetailRepository extends AbstractIntegrationTest {
         OrderDetailEntity orderDetailDuplicated = new OrderDetailEntity(order, product, OrderDetailStatusEnum.ORDERED, 10L);
         try {
             orderDetailDuplicated = orderDetailRepository.save(orderDetailDuplicated);
-        } catch (DataIntegrityViolationException ex) {
+        } catch (Exception ex) {
             assertEquals("Data integrity violation thrown", ex.getClass(), DataIntegrityViolationException.class);
         }
         assertEquals("Order detail not created", null, orderDetailDuplicated.getId());
@@ -109,8 +111,8 @@ public class TestOrderDetailRepository extends AbstractIntegrationTest {
         OrderDetailEntity orderDetail = new OrderDetailEntity(null, product, OrderDetailStatusEnum.ORDERED, 5L);
         try {
             orderDetail = orderDetailRepository.save(orderDetail);
-        } catch (DataIntegrityViolationException ex) {
-            assertEquals("Data integrity violation thrown", ex.getClass(), DataIntegrityViolationException.class);
+        } catch (Exception ex) {
+            assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertEquals("Order detail not created",null, orderDetail.getId());
     }
@@ -129,8 +131,8 @@ public class TestOrderDetailRepository extends AbstractIntegrationTest {
         OrderDetailEntity orderDetail = new OrderDetailEntity(order, null, OrderDetailStatusEnum.ORDERED, 5L);
         try {
             orderDetail = orderDetailRepository.save(orderDetail);
-        } catch (DataIntegrityViolationException ex) {
-            assertEquals("Data integrity violation thrown", ex.getClass(), DataIntegrityViolationException.class);
+        } catch (Exception ex) {
+            assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertEquals("Order detail not created", null, orderDetail.getId());
     }

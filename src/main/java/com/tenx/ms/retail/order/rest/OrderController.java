@@ -9,7 +9,6 @@ import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -17,12 +16,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolationException;
-import java.io.IOException;
 
 /**
  * Created by goropeza on 28/08/16.
@@ -47,19 +40,5 @@ public class OrderController {
     public Order createOrder(@ApiParam(name = "storeId", value = "Store id") @PathVariable() Long storeId,
                              @ApiParam(name = "order", value = "Order data", required = true) @RequestBody Order order) {
         return orderService.createOrder(storeId, order);
-    }
-
-    @ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)
-    @ExceptionHandler(ConstraintViolationException.class)
-    protected void handleConstraintViolationException(ConstraintViolationException ex,
-                                                      HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.sendError(HttpStatus.PRECONDITION_FAILED.value(), ex.getMessage());
-    }
-
-    @ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    protected void handleDataIntegrityViolationException(DataIntegrityViolationException ex,
-                                                         HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.sendError(HttpStatus.PRECONDITION_FAILED.value(), ex.getMessage());
     }
 }

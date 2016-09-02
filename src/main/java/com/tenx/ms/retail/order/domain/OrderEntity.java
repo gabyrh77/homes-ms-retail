@@ -14,6 +14,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 /**
@@ -30,17 +31,21 @@ public class OrderEntity {
 
     @ManyToOne
     @JoinColumn(name = "store_id", nullable = false)
+    @NotNull
     private StoreEntity store;
 
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = false)
+    @NotNull
     private ClientEntity client;
 
     @Column(name = "created_date", nullable = false)
+    @NotNull
     private LocalDateTime createdDate;
 
     @Column(name = "status", nullable = false)
     @Convert(converter = OrderStatusConverter.class)
+    @NotNull
     private String status;
 
     public OrderEntity() {}

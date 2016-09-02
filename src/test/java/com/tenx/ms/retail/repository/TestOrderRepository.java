@@ -13,9 +13,10 @@ import org.flywaydb.test.annotation.FlywayTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.validation.ConstraintViolationException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -27,6 +28,7 @@ import static org.junit.Assert.assertNull;
 @SpringApplicationConfiguration(classes = RetailServiceApp.class)
 @ActiveProfiles(Profiles.TEST_NOAUTH)
 @Transactional
+@SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class TestOrderRepository extends AbstractIntegrationTest {
 
     @Autowired
@@ -61,8 +63,8 @@ public class TestOrderRepository extends AbstractIntegrationTest {
         OrderEntity order = new OrderEntity(null, client);
         try {
             order = orderRepository.save(order);
-        } catch (DataIntegrityViolationException ex) {
-            assertEquals("Data integrity violation thrown", ex.getClass(), DataIntegrityViolationException.class);
+        } catch (Exception ex) {
+            assertEquals("Data integrity violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertNull("Order not created", order.getId());
     }
@@ -76,8 +78,8 @@ public class TestOrderRepository extends AbstractIntegrationTest {
         OrderEntity order = new OrderEntity(store, null);
         try {
             order = orderRepository.save(order);
-        } catch (DataIntegrityViolationException ex) {
-            assertEquals("Data integrity violation thrown", ex.getClass(), DataIntegrityViolationException.class);
+        } catch (Exception ex) {
+            assertEquals("Data integrity violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertNull("Order not created", order.getId());
     }

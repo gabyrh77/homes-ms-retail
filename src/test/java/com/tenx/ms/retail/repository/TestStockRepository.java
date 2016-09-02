@@ -17,6 +17,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.ConstraintViolationException;
 import java.math.BigDecimal;
 
 import static org.junit.Assert.assertEquals;
@@ -29,6 +30,7 @@ import static org.junit.Assert.assertTrue;
 @SpringApplicationConfiguration(classes = RetailServiceApp.class)
 @ActiveProfiles(Profiles.TEST_NOAUTH)
 @Transactional
+@SuppressWarnings("PMD.AvoidCatchingGenericException")
 public class TestStockRepository extends AbstractIntegrationTest {
 
     @Autowired
@@ -65,10 +67,48 @@ public class TestStockRepository extends AbstractIntegrationTest {
         StockEntity stock = new StockEntity(null, 100L);
         try {
             stock = stockRepository.save(stock);
-        } catch (DataIntegrityViolationException ex) {
-            assertEquals("Data integrity violation thrown", ex.getClass(), DataIntegrityViolationException.class);
+        } catch (Exception ex) {
+            assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
         }
         assertEquals("Stock not created", null, stock.getId());
+    }
+
+    @Test
+    @FlywayTest
+    public void saveStockFailCountNull() {
+        StoreEntity store = new StoreEntity("Adidas");
+        store = storeRepository.save(store);
+        ProductEntity product = new ProductEntity("123bc", "Shoes", "Beautiful shoes", BigDecimal.valueOf(50.00), store);
+        product = productRepository.save(product);
+
+        StockEntity stock = new StockEntity(product, null);
+        try {
+            stock = stockRepository.save(stock);
+        } catch (Exception ex) {
+            assertEquals("Constraint violation thrown", ex.getClass(), ConstraintViolationException.class);
+        }
+        assertEquals("Stock not created", null, stock.getId());
+    }
+
+    @Test
+    @FlywayTest
+    public void createStockDuplicated() {
+        StoreEntity store = new StoreEntity("Adidas");
+        store = storeRepository.save(store);
+        ProductEntity product = new ProductEntity("123bc", "Shoes", "Beautiful shoes", BigDecimal.valueOf(50.00), store);
+        product = productRepository.save(product);
+
+        StockEntity stock = new StockEntity(product, 100L);
+        stock = stockRepository.save(stock);
+        assertTrue("Stock created", stock.getId() > 0);
+
+        StockEntity stockDuplicated = new StockEntity(product, 100L);
+        try {
+            stockDuplicated = stockRepository.save(stockDuplicated);
+        } catch (Exception ex) {
+            assertEquals("Data integrity violation thrown", ex.getClass(), DataIntegrityViolationException.class);
+        }
+        assertEquals("Stock not created", null, stockDuplicated.getId());
     }
 
     @Test

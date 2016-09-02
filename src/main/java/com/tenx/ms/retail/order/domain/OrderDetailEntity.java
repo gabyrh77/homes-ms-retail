@@ -14,6 +14,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Enumerated;
 import javax.persistence.EnumType;
 import javax.persistence.GenerationType;
+import javax.validation.constraints.NotNull;
 
 /**
  * Created by goropeza on 28/08/16.
@@ -30,17 +31,21 @@ public class OrderDetailEntity {
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
+    @NotNull
     private OrderEntity order;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
+    @NotNull
     private ProductEntity product;
 
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "status", nullable = false)
+    @NotNull
     private OrderDetailStatusEnum status;
 
     @Column(name = "product_count", nullable = false)
+    @NotNull
     private Long count;
 
     public OrderDetailEntity() {}

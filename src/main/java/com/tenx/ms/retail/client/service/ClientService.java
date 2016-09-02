@@ -6,6 +6,7 @@ import com.tenx.ms.retail.client.rest.dto.Client;
 import com.tenx.ms.retail.client.util.ClientConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;

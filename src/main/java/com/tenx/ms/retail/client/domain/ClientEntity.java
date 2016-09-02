@@ -10,6 +10,8 @@ import javax.persistence.Id;
 import javax.persistence.Column;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
+import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
@@ -17,7 +19,7 @@ import javax.validation.constraints.Size;
  * Created by goropeza on 28/08/16.
  */
 @Entity
-@Table(name = "client")
+@Table(name = "client", uniqueConstraints = @UniqueConstraint(name = "unique_client_email", columnNames = {"email"}))
 public class ClientEntity {
 
     @Id
@@ -27,22 +29,26 @@ public class ClientEntity {
 
     @Email
     @Size(min = 1, max = 50)
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(name = "email", nullable = false)
+    @NotNull
     private String email;
 
     @Pattern(regexp="[a-zA-Z]*")
     @Size(min = 1, max = 50)
     @Column(name = "first_name", nullable = false)
+    @NotNull
     private String firstName;
 
     @Pattern(regexp="[a-zA-Z]*")
     @Size(min = 1, max = 50)
     @Column(name = "last_name", nullable = false)
+    @NotNull
     private String lastName;
 
     @PhoneNumber
     @Size(min = 1, max = 10)
     @Column(name = "phone", nullable = false)
+    @NotNull
     private String phone;
 
     public ClientEntity() {}

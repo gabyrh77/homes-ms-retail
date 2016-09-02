@@ -1,7 +1,9 @@
 package com.tenx.ms.retail.client.rest;
 
 import com.tenx.ms.commons.rest.RestConstants;
+import com.tenx.ms.commons.rest.ValidationError;
 import com.tenx.ms.commons.rest.dto.ResourceCreated;
+import com.tenx.ms.retail.client.exception.ClientValidationsConverter;
 import com.tenx.ms.retail.client.rest.dto.Client;
 import com.tenx.ms.retail.client.service.ClientService;
 import io.swagger.annotations.Api;
@@ -12,7 +14,7 @@ import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.transaction.TransactionSystemException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -21,10 +23,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolationException;
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -34,6 +32,9 @@ import java.util.List;
 @RestController("clientControllerV1")
 @RequestMapping(RestConstants.VERSION_ONE + "/clients")
 public class ClientController {
+
+    @Autowired
+    private ClientValidationsConverter validationsConverter;
     @Autowired
     private ClientService clientService;
 
@@ -98,24 +99,9 @@ public class ClientController {
         clientService.deleteClient(clientId);
     }
 
-    @ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)
-    @ExceptionHandler(ConstraintViolationException.class)
-    protected void handleConstraintViolationException(ConstraintViolationException ex,
-                                                      HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.sendError(HttpStatus.PRECONDITION_FAILED.value(), ex.getMessage());
-    }
-
-    @ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)
     @ExceptionHandler(DataIntegrityViolationException.class)
-    protected void handleDataIntegrityViolationException(DataIntegrityViolationException ex,
-                                                         HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.sendError(HttpStatus.PRECONDITION_FAILED.value(), ex.getMessage());
-    }
-
-    @ResponseStatus(value = HttpStatus.PRECONDITION_FAILED)
-    @ExceptionHandler(TransactionSystemException.class)
-    protected void handleTransactionSystemException(TransactionSystemException ex,
-                                                         HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.sendError(HttpStatus.PRECONDITION_FAILED.value(), ex.getMessage());
+    protected ResponseEntity handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        ValidationError error = new ValidationError(ex, null, validationsConverter.getDataIntegrityErrors(ex));
+        return new ResponseEntity<>(error, HttpStatus.PRECONDITION_FAILED);
     }
 }

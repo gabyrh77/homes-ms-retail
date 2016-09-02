@@ -11,6 +11,7 @@ import javax.persistence.UniqueConstraint;
 import javax.persistence.ManyToOne;
 import javax.persistence.JoinColumn;
 import javax.persistence.GenerationType;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
@@ -31,21 +32,26 @@ public class ProductEntity {
     @Size(min = 5, max = 10)
     @Pattern(regexp = "[A-Za-z0-9]*")
     @Column(name = "sku", nullable = false)
+    @NotNull
     private String sku;
 
     @Size(min = 1, max = 50)
     @Column(name = "name", nullable = false)
+    @NotNull
     private String name;
 
     @Size(min = 1, max = 200)
     @Column(name = "description", nullable = false)
+    @NotNull
     private String description;
 
     @Column(name = "price", length = 15, precision = 2, nullable = false)
+    @NotNull
     private BigDecimal price;
 
     @ManyToOne
     @JoinColumn(name = "store_id", nullable = false)
+    @NotNull
     private StoreEntity store;
 
     public ProductEntity() {}

@@ -1,5 +1,6 @@
 package com.tenx.ms.retail.rest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tenx.ms.commons.config.Profiles;
 import com.tenx.ms.commons.rest.RestConstants;
@@ -26,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -148,11 +150,15 @@ public class TestStoreController extends AbstractIntegrationTest {
         ResponseEntity<String> responseDuplicated = getJSONResponse(template, String.format(REQUEST_URI, basePath()), FileUtils.readFileToString(newStoreRequest), HttpMethod.POST);
         assertEquals("Store not created status", HttpStatus.PRECONDITION_FAILED, responseDuplicated.getStatusCode());
 
-        ResponseEntity<String> responseGet = getJSONResponse(template, String.format(REQUEST_URI, basePath()), null, HttpMethod.GET);
-        assertEquals("Get all stores ok", HttpStatus.OK, responseGet.getStatusCode());
-        List<Store> stores = mapper.readValue(responseGet.getBody(), List.class);
-        assertNotNull("Get all stores not null", stores);
-        assertEquals("Get all stores correct size", stores.size(), 1);
+        Map responseBody = mapper.readValue(responseDuplicated.getBody(), new TypeReference<Map>() {});
+        assertNotNull("Error body exists", responseBody);
+        assertTrue("Exists errors", responseBody.containsKey("errors"));
+        assertNotNull("Error list exists", responseBody.get("errors"));
+        List<Map> errors = (List<Map>) responseBody.get("errors");
+        assertEquals("Error list correct size", errors.size(), 1);
+
+        assertEquals("Error list correct field", errors.get(0).get("object_name"), "name");
+        assertEquals("Error list correct message", errors.get(0).get("default_message"), "is unique and already exists");
     }
 
     @Test

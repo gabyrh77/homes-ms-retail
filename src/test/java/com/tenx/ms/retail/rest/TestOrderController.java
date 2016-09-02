@@ -3,6 +3,7 @@ package com.tenx.ms.retail.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tenx.ms.commons.config.Profiles;
 import com.tenx.ms.commons.rest.RestConstants;
+import com.tenx.ms.commons.rest.SystemError;
 import com.tenx.ms.commons.rest.dto.ResourceCreated;
 import com.tenx.ms.commons.tests.AbstractIntegrationTest;
 import com.tenx.ms.retail.RetailServiceApp;
@@ -79,6 +80,9 @@ public class TestOrderController extends AbstractIntegrationTest {
     @Value("classpath:rest/assets/new_order_client_invalid.json")
     private File newOrderClientInvalidRequest;
 
+    @Value("classpath:rest/assets/new_order_client_null.json")
+    private File newOrderClientNullRequest;
+
     private Integer storeId;
     private Integer productId;
 
@@ -108,6 +112,18 @@ public class TestOrderController extends AbstractIntegrationTest {
         ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId,
             FileUtils.readFileToString(newOrderClientInvalidRequest), HttpMethod.POST);
         assertEquals("Order not created, client not found", HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    @FlywayTest
+    public void createOrderClientNull() throws IOException {
+        ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId,
+            FileUtils.readFileToString(newOrderClientNullRequest), HttpMethod.POST);
+        assertEquals("Order not created, client null", HttpStatus.PRECONDITION_FAILED, response.getStatusCode());
+
+        SystemError responseBody = mapper.readValue(response.getBody(), SystemError.class);
+        assertNotNull("Response body not null", responseBody);
+        assertEquals("Correct client null message", "clientId must not be null.", responseBody.getMessage());
     }
 
     @Test
@@ -249,6 +265,9 @@ public class TestOrderController extends AbstractIntegrationTest {
         ResponseEntity<String> response = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + storeId,
             FileUtils.readFileToString(newOrderDetailNullRequest), HttpMethod.POST);
         assertEquals("Order not created, details null", HttpStatus.PRECONDITION_FAILED, response.getStatusCode());
+        SystemError responseBody = mapper.readValue(response.getBody(), SystemError.class);
+        assertNotNull("Response body not null", responseBody);
+        assertEquals("Correct order details message", "Order products must not be null.", responseBody.getMessage());
     }
 
     @Test

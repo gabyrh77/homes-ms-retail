@@ -1,5 +1,6 @@
 package com.tenx.ms.retail.rest;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tenx.ms.commons.config.Profiles;
 import com.tenx.ms.commons.rest.RestConstants;
@@ -26,8 +27,12 @@ import org.springframework.web.client.RestTemplate;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Created by goropeza on 26/08/16.
@@ -127,6 +132,16 @@ public class TestProductController extends AbstractIntegrationTest {
         ResponseEntity<String> responseDuplicated = getJSONResponse(template, String.format(REQUEST_URI, basePath()) + responseStoreId.getId(),
             FileUtils.readFileToString(newProductRequest), HttpMethod.POST);
         assertEquals("Product duplicated not created", HttpStatus.PRECONDITION_FAILED, responseDuplicated.getStatusCode());
+
+        Map responseBody = mapper.readValue(responseDuplicated.getBody(), new TypeReference<Map>() {});
+        assertNotNull("Error body exists", responseBody);
+        assertTrue("Exists errors", responseBody.containsKey("errors"));
+        assertNotNull("Error list exists", responseBody.get("errors"));
+        List<Map> errors = (List<Map>) responseBody.get("errors");
+        assertEquals("Error list correct size", errors.size(), 1);
+
+        assertEquals("Error list correct field", errors.get(0).get("object_name"), "sku");
+        assertEquals("Error list correct message", errors.get(0).get("default_message"), "is unique and already exists");
     }
 
     @Test

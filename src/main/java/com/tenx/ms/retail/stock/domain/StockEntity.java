@@ -10,12 +10,14 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.GenerationType;
+import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotNull;
 
 /**
  * Created by goropeza on 26/08/16.
  */
 @Entity
-@Table(name = "stock")
+@Table(name = "stock", uniqueConstraints = @UniqueConstraint(name = "unique_product_stock", columnNames = {"product_id"}))
 public class StockEntity {
 
     @Id
@@ -24,10 +26,12 @@ public class StockEntity {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "product_id", unique = true, nullable = false)
+    @JoinColumn(name = "product_id", nullable = false)
+    @NotNull
     private ProductEntity product;
 
     @Column(name = "product_count", nullable = false)
+    @NotNull
     private Long existence;
 
     public StockEntity() {}

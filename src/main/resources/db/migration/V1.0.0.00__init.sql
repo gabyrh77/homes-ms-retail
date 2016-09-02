@@ -1,7 +1,8 @@
 CREATE TABLE store (
     id     BIGINT      NOT NULL AUTO_INCREMENT,
-    name   VARCHAR(50) NOT NULL UNIQUE,
-    PRIMARY KEY (id)
+    name   VARCHAR(50) NOT NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT unique_store_name UNIQUE (name)
 );
 
 CREATE TABLE product (
@@ -17,20 +18,22 @@ CREATE TABLE product (
 );
 
 CREATE TABLE stock (
-    id   BIGINT  NOT NULL AUTO_INCREMENT,
-    product_id BIGINT NOT NULL,
-    product_count      BIGINT NOT NULL,
+    id              BIGINT  NOT NULL AUTO_INCREMENT,
+    product_id      BIGINT NOT NULL,
+    product_count   BIGINT NOT NULL,
     PRIMARY KEY (id),
-    FOREIGN KEY (product_id) REFERENCES product(id)
+    FOREIGN KEY (product_id) REFERENCES product(id),
+    CONSTRAINT unique_product_stock UNIQUE (product_id)
 );
 
 CREATE TABLE client (
     id         BIGINT       NOT NULL AUTO_INCREMENT,
     first_name VARCHAR(50)  NOT NULL,
     last_name  VARCHAR(50)  NOT NULL,
-    email      VARCHAR(50)  NOT NULL UNIQUE,
+    email      VARCHAR(50)  NOT NULL,
     phone      VARCHAR(10)  NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    CONSTRAINT unique_client_email UNIQUE (email)
 );
 
 CREATE TABLE order_table (

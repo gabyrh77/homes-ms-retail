@@ -16,11 +16,11 @@ import com.tenx.ms.retail.stock.domain.StockEntity;
 import com.tenx.ms.retail.stock.repository.StockRepository;
 import com.tenx.ms.retail.store.domain.StoreEntity;
 import com.tenx.ms.retail.store.repository.StoreRepository;
+import org.apache.commons.lang.NullArgumentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-import javax.validation.ConstraintViolationException;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -60,11 +60,11 @@ public class OrderService {
 
         List<OrderDetail> details = order.getProducts();
         if (details == null || details.isEmpty()) {
-            throw new ConstraintViolationException("Empty order details", null);
+            throw new NullArgumentException("Order products");
         }
 
         if (order.getClientId() == null) {
-            throw new ConstraintViolationException("Order must have a clientId", null);
+            throw new NullArgumentException("clientId");
         } else {
             Optional<ClientEntity> resultClient = clientRepository.findById(order.getClientId());
             if (!resultClient.isPresent()) {
